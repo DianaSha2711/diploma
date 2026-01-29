@@ -1,0 +1,10 @@
+{
+  "name": "cinema-booking-system",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "http-server -p 8080 -o",
+    "start-admin": "http-server -p 8080 -o admin.html",
+    "start-login": "http-server -p 8080 -o login.html",
+    "dev": "http-server -p 8080 -c-1"  
+  }
+}
