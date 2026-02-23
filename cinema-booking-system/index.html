@@ -67,16 +67,16 @@
 
     
     <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+        <div class="modal-dialog modal-lg height90">
+            <div class="modal-content height100">
                 <div class="modal-header">
                     <h5 class="modal-title" id="bookingModalLabel">Выбор мест</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="booking-container">
+                <div class="modal-body over_x_hidd">
+                    <div class="booking-container flex_vert">
                         
-                        <div class="hall-info mb-3 text-center text-muted">
+                        <div class="hall-info mb-3 text-center text-muted" id="seance_info">
                             Загрузка информации о зале...
                         </div>
                         
@@ -90,7 +90,7 @@
                         </div>
                         
                         
-                        <div class="booking-info mt-4 p-3 bg-light rounded">
+                        <div class="booking_info rounded">
                             <h6 class="mb-3"><i class="fas fa-ticket-alt me-2"></i>Выбранные места:</h6>
                             <div id="selectedSeats" class="mb-2">
                                 <p class="text-muted mb-0">Места не выбраны</p>
