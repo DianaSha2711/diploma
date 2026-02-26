@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 e.preventDefault();
                 
                 
-                cinemaAPI.logout();
+               // cinemaAPI.logout();
                 
                 
                 localStorage.removeItem('cinema_admin_token');

@@ -3,10 +3,11 @@
     --s: #ffa500;
     --a: #ffd700;
     --g: linear-gradient(135deg, #ff6b6b, #ffa500);
-    --bg: #ffffff; /* БЫЛО: #0a0a14 СТАЛО: #ffffff */
+    --bg: #ffffff;
     --card: rgba(30, 30, 40, 0.8);
     --modal: #1a1a2e;
     --shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    --teal: #008080;
 }
 
 * {
@@ -20,6 +21,33 @@ body {
     min-height: 100vh;
     color: #fff;
     margin: 0;
+}
+
+
+.navbar-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.navbar-nav .nav-item {
+    margin: 0;
+}
+
+.navbar-nav .nav-link {
+    color: white !important;
+    background-color: #006666;
+    padding: 8px 20px !important;
+    border-radius: 0;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: inline-block;
+    text-align: center;
+    min-width: 100px;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: #004d4d;
+    transform: translateY(-2px);
 }
 
 .navbar-brand {
@@ -39,14 +67,16 @@ body {
     color: var(--p);
 }
 
-
 .navbar-dark.bg-dark {
     background-color: #212529 !important;
     backdrop-filter: none;
 }
 
-.seance-hall{
-    color: black;}
+.seance-hall {
+    color: black !important; 
+    font-size: 1.2rem !important; 
+    font-weight: 700;
+}
 
 .hero {
     color: #fff;
@@ -58,6 +88,7 @@ body {
 .seance-card {
     margin: 30px;
 }
+
 .hero h1 {
     font-size: 3rem;
     font-weight: 800;
@@ -66,6 +97,16 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+}
+
+
+.hero p,
+.hero .lead,
+.hero .seance-today,
+[class*="seance-today"],
+[class*="session-today"],
+.seance-today-label {
+    display: none !important;
 }
 
 .client-container,
@@ -95,56 +136,185 @@ body {
 }
 
 .date-selector {
-    background: var(--card);
+    background: transparent;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: var(--shadow);
+    box-shadow: none;
+    position: relative;
+}
+
+.date-scroll-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
 }
 
 .date-scroll {
     display: flex;
     overflow-x: auto;
-    gap: 10px;
+    gap: 0;
     padding: 10px 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex: 1;
+}
+
+.date-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.date-scroll-btn {
+    min-width: 45px;
+    height: 45px;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+    padding: 0;
+    visibility: visible;
+    opacity: 1;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: black;
+    line-height: 1;
+}
+
+.date-scroll-btn::after {
+    content: ">";
+    display: block;
+}
+
+.date-scroll-btn:hover {
+    background-color: #f5f5f5;
+    transform: translateY(-2px);
+    border-color: #ccc;
+}
+
+.date-scroll-btn i {
+    display: none;
+}
+
+.date-scroll-btn:active {
+    transform: translateY(0);
 }
 
 .date-item {
-    min-width: 80px;
-    padding: 10px;
+    min-width: 120px;
+    padding: 2px 10px;
     text-align: center;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 0;
     transition: all 0.3s;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    color: black;
+    font-weight: 300;
+    height: 45px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.3;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.date-item:not(:last-child) {
+    border-right: none;
+}
+
+.date-item:first-child {
+    border-left: 1px solid #e0e0e0;
+}
+
+.date-item:last-child {
+    border-right: 1px solid #e0e0e0;
+}
+
+.date-item .date-day {
+    font-size: 1rem;
+    text-transform: uppercase;
+    color: black;
+    font-weight: 400;
+    order: 2;
+}
+
+.date-item .date-day::after {
+    content: ",";
+    display: inline;
+}
+
+.date-item .date-number {
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: black;
+    order: 1;
+}
+
+.date-item .date-month {
+    display: none;
+}
+
+.date-item:hover {
+    background-color: #f5f5f5;
+    transform: translateY(-2px);
+    border-color: #ccc;
+    z-index: 1;
+}
+
+.date-item.active {
+    background: linear-gradient(135deg, #ff6b6b, #ffa500);
+    color: white;
+    border-color: transparent;
+    z-index: 2;
+}
+
+.date-item.active .date-day,
+.date-item.active .date-number {
+    color: white;
+}
+
+.seance-time-btn {
+    color: black !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    background-color: white;
+    border: 2px solid #e0e0e0;
+    padding: 4px 12px;
+    margin: 0 5px 5px 0;
+    border-radius: 0;
+    transition: all 0.3s;
+    display: inline-block;
+    min-width: 70px;
+    text-align: center;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.seance-time-btn:hover {
+    background-color: #f5f5f5;
+    transform: translateY(-2px);
+    border-color: #ccc;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+}
+
+.seance-time-btn.active {
+    background: linear-gradient(135deg, #ff6b6b, #ffa500);
+    color: white !important;
+    border-color: transparent;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
 }
 
 .film_title {
     padding-left: 30px;
-}
-.date-item:hover {
-    background: rgba(255, 107, 107, 0.2);
-    transform: translateY(-2px);
-}
-
-.date-item.active {
-    background: var(--g);
-    color: #fff;
-}
-
-.date-day {
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
-.date-number {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.date-month {
-    font-size: 0.8rem;
-    text-transform: uppercase;
 }
 
 .movie-card,
@@ -164,151 +334,186 @@ body {
     border-color: var(--p);
 }
 
+.spinner-border {
+    margin: 2rem auto;
+}
 
+.film-card, .seance-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 
-        .spinner-border {
-            margin: 2rem auto;
-        }
-        .film-card, .seance-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .film-card:hover, .seance-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .film-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        .seance-time {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #3498db;
-        }
-        .hall-layout {
-            overflow-x: auto;
-            padding: 1rem 0;
-        }
-        .seat {
-            width: 35px;
-            height: 35px;
-            margin: 3px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px 8px 0 0;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .seat.available {
-            background-color: #ecf0f1;
-            border: 1px solid #bdc3c7;
-            color: #7f8c8d;
-        }
-        .seat.vip {
-            background-color: #f1c40f;
-            border: 1px solid #f39c12;
-            color: #000;
-        }
-        .seat.selected {
-            background-color: #2ecc71;
-            border: 1px solid #27ae60;
-            color: white;
-        }
+.film-card:hover, .seance-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
 
-        .seat.disabled {
-            background-color: #cc2eb7;
-            border: 1px solid #ae278c;
-            color: rgb(192, 192, 192);
-        }
-        .seat.taken {
-            background-color: #e74c3c;
-            border: 1px solid #c0392b;
-            color: white;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-        .screen {
-            background: linear-gradient(to bottom, #34495e, #2c3e50);
-            color: white;
-            text-align: center;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            letter-spacing: 5px;
-        }
-        .date-scroll {
-            display: flex;
-            overflow-x: auto;
-            padding: 10px 0;
-            gap: 10px;
-        }
-        .date-item {
-            min-width: 80px;
-            padding: 10px;
-            text-align: center;
-            background: #f8f9fa;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .date-item.active {
-            background: #3498db;
-            color: white;
-        }
-        .date-item:hover {
-            background: #e9ecef;
-        }
-        .date-item.active:hover {
-            background: #2980b9;
-        }
-        .date-day {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-        }
-        .date-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .date-month {
-            font-size: 0.9rem;
-        }
-        .selected-seats-list {
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        .selected-seat-item {
-            display: inline-block;
-            background: #e9ecef;
-            padding: 5px 10px;
-            margin: 3px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-        }
-        .ticket {
-            text-align: left;
-        }
-        .ticket-header {
-            border-bottom: 2px dashed #dee2e6;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-        }
-        .ticket-code {
-            font-family: monospace;
-            font-size: 1.2rem;
-            color: #6c757d;
-        }
-        .qr-code {
-            max-width: 120px;
-            height: auto;
-        }
- 
+.film-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.seance-time {
+    font-size: 1.2rem;
+    font-weight: 600 !important;
+    color: black !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    background-color: white;
+    border: 2px solid #e0e0e0;
+    padding: 4px 12px;
+    display: inline-block;
+    margin: 0 5px 5px 0;
+    border-radius: 0;
+    transition: all 0.3s;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+.seance-time:hover {
+    background-color: #f5f5f5;
+    transform: translateY(-2px);
+    border-color: #ccc;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+}
+
+.seance-time.selected {
+    background: linear-gradient(135deg, #ff6b6b, #ffa500);
+    color: white !important;
+    border-color: transparent;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+.hall-layout {
+    overflow-x: auto;
+    padding: 1rem 0;
+}
+
+/* Объединены все селекторы .seat в один */
+.seat {
+    width: 35px;
+    height: 35px;
+    margin: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px 8px 0 0;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #2a2a3e;
+    border: 2px solid #3a3a4e;
+    color: #fff;
+}
+
+.seat.available {
+    background-color: #ecf0f1;
+    border: 1px solid #bdc3c7;
+    color: #7f8c8d;
+    background: rgba(233, 236, 239, 0.1);
+    border-color: rgba(222, 226, 230, 0.3);
+}
+
+.seat.vip {
+    background-color: #f1c40f;
+    border: 1px solid #f39c12;
+    color: #000;
+    background: rgba(255, 195, 0, 0.2);
+    border-color: #ffc300;
+}
+
+.seat.selected {
+    background-color: #2ecc71;
+    border: 1px solid #27ae60;
+    color: white;
+    background: var(--g);
+    border-color: transparent;
+}
+
+.seat.disabled {
+    background-color: #cc2eb7;
+    border: 1px solid #ae278c;
+    color: rgb(192, 192, 192);
+}
+
+.seat.taken,
+.seat.booked {
+    background-color: #e74c3c;
+    border: 1px solid #c0392b;
+    color: white;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.seat:hover:not(.booked):not(.taken) {
+    transform: scale(1.1);
+    background: #3a3a4e;
+}
+
+.screen {
+    background: linear-gradient(to bottom, #34495e, #2c3e50);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    letter-spacing: 5px;
+}
+
+/* Объединены все селекторы .screen в один */
+.screen {
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    margin-bottom: 40px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.selected-seats-list {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.selected-seat-item {
+    display: inline-block;
+    background: #e9ecef;
+    padding: 5px 10px;
+    margin: 3px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.ticket {
+    text-align: left;
+}
+
+.ticket-header {
+    border-bottom: 2px dashed #dee2e6;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.ticket-code {
+    font-family: monospace;
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.qr-code {
+    max-width: 120px;
+    height: auto;
+}
+
 .card1 {
     position: relative;
     display: flex;
@@ -326,13 +531,13 @@ body {
     padding-left: 30px;
     padding-top: 30px;
 }
+
 .flex_gor {
-display:flex;
+    display: flex;
 }
 
 .card_img_top {
-height: 300px;
-
+    height: 300px;
 }
 
 .screening-card .card-body {
@@ -362,9 +567,14 @@ height: 300px;
     color: var(--a);
 }
 
-.screening-hall {
-    color: var(--s);
-    font-weight: 600;
+/* Стили для названий залов - черный цвет и размер 1.2rem */
+.screening-hall,
+.hall-name,
+.hall-title,
+[class*="hall"] {
+    color: black !important;
+    font-weight: 700 !important;
+    font-size: 1.2rem !important;
 }
 
 .booking-container {
@@ -381,21 +591,6 @@ height: 300px;
     border-radius: 10px;
 }
 
-.screen {
-    width: 100%;
-    height: 40px;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 5px;
-    margin-bottom: 40px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
 .seat-row {
     display: flex;
     justify-content: center;
@@ -409,49 +604,6 @@ height: 300px;
     font-weight: 700;
     margin-right: 10px;
     color: var(--s);
-}
-
-.seat {
-    width: 35px;
-    height: 35px;
-    margin: 2px;
-    border-radius: 5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    transition: all 0.2s;
-    background: #2a2a3e;
-    border: 2px solid #3a3a4e;
-    color: #fff;
-}
-
-.seat:hover:not(.booked) {
-    transform: scale(1.1);
-    background: #3a3a4e;
-}
-
-.seat.available {
-    background: rgba(233, 236, 239, 0.1);
-    border-color: rgba(222, 226, 230, 0.3);
-}
-
-.seat.vip {
-    background: rgba(255, 195, 0, 0.2);
-    border-color: #ffc300;
-}
-
-.seat.booked {
-    background-color: #dc3545;
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.seat.selected {
-    background: var(--g);
-    color: #fff;
-    border-color: transparent;
 }
 
 .hall-legend {
@@ -561,7 +713,6 @@ height: 300px;
     border-left-color: var(--p);
 }
 
-/* УБРАНО затемнение - теперь чистый белый/светлый фон */
 .main-content {
     flex: 1;
     padding: 30px;
@@ -616,7 +767,6 @@ height: 300px;
     border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-/* УБРАНО затемнение полей форм */
 .form-control {
     background: #ffffff;
     border: 1px solid #ced4da;
@@ -630,7 +780,6 @@ height: 300px;
     color: #495057;
 }
 
-/* УБРАНО затемнение текста */
 .form-label {
     color: #495057;
 }
@@ -673,7 +822,27 @@ height: 300px;
     }
     
     .date-item {
-        min-width: 60px;
+        min-width: 100px;
+        height: 40px;
+    }
+    
+    .date-item .date-day {
+        font-size: 0.9rem;
+    }
+    
+    .date-item .date-number {
+        font-size: 1.2rem;
+    }
+    
+    .date-scroll-btn {
+        min-width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+    
+    .navbar-nav .nav-link {
+        min-width: 80px;
+        padding: 6px 15px !important;
     }
     
     .seat {

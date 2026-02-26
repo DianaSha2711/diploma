@@ -45,14 +45,14 @@ function initDateSelector() {
             document.querySelectorAll('.date-item').forEach(el => el.classList.remove('active'));
             dateElement.classList.add('active');
             currentDate = date;
-            updateCurrentDateDisplay();
+            /*updateCurrentDateDisplay();*/
             loadSeances();
         });
 
         dateScroll.appendChild(dateElement);
     }
 
-    updateCurrentDateDisplay();
+    /*updateCurrentDateDisplay();*/
 }
 
 function formatDay(date) {
@@ -63,7 +63,7 @@ function formatMonth(date) {
     return date.toLocaleDateString('ru-RU', { month: 'short' }).slice(0, 3);
 }
 
-function updateCurrentDateDisplay() {
+/*function updateCurrentDateDisplay() {
     const element = document.getElementById('currentDate');
     if (element) {
         element.textContent = currentDate.toLocaleDateString('ru-RU', {
@@ -72,7 +72,7 @@ function updateCurrentDateDisplay() {
             year: 'numeric'
         });
     }
-}
+}*/
 
 
 
@@ -228,7 +228,7 @@ function createSeanceCard(seance) {
         const currHall = allHalls.find(it => it.id === hall.id);
         let hallName = 'Неизвестный зал';
         if (currHall) {
-            hallName = currHall.hall_name;
+            hallName = currHall.hall_name.toUpperCase();
         }
         sTimes += `<div class="seance-hall">${hallName}<br>`
         hall.aData.forEach(data => {
