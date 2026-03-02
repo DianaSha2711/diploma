@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         
     }
     
-    
     displayUserInfo();
     
     
@@ -40,16 +39,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         await loadDashboardStats();
         
-        
         initNavigation();
         
-        
         initModals();
-        
-        
-        await loadSectionData('dashboard');
     }
-    
     
     function displayUserInfo() {
         try {
@@ -89,11 +82,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             document.getElementById('logoutBtn').addEventListener('click', function(e) {
                 e.preventDefault();
-                
-                
-               // cinemaAPI.logout();
-                
-                
+              
                 localStorage.removeItem('cinema_admin_token');
                 localStorage.removeItem('cinema_admin_user');
                 
@@ -105,8 +94,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.error('Ошибка отображения информации о пользователе:', error);
         }
     }
-    
-    
     
     function initNavigation() {
         
@@ -124,49 +111,39 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 
                 const sectionId = this.getAttribute('href').substring(1);
-                showSection(sectionId);
+
+				document.querySelectorAll('.admin-section').forEach(section => {
+					section.style.display = 'none';
+				});
+				
+				const section = document.getElementById(sectionId);
+				if (section) {
+					section.style.display = 'block';
+					loadSectionData(sectionId);
+				}
             });
         });
     }
     
-    function showSection(sectionId) {
-        
-        document.querySelectorAll('.admin-section').forEach(section => {
-            section.style.display = 'none';
-        });
-        
-        
-        const section = document.getElementById(sectionId);
-        if (section) {
-            section.style.display = 'block';
-            
-            
-            loadSectionData(sectionId);
-        }
-    }
-    
-    
     async function loadSectionData(sectionId) {
         switch(sectionId) {
             case 'dashboard':
-                await loadDashboardStats();
+                loadDashboardStats();
                 break;
             case 'movies':
-                await loadMovies();
+                loadMovies();
                 break;
             case 'halls':
-                await loadHalls();
+                loadHalls();
                 break;
             case 'screenings':
-                await loadScreenings();
+                loadScreenings();
                 break;
             case 'bookings':
                 await loadBookings();
                 break;
         }
     }
-    
-   
     
     async function loadDashboardStats() {
         try {
@@ -201,11 +178,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    
-    
     async function loadMovies() {
         try {
-            const movies = await cinemaAPI.getMovies();
+			await this.request('alldata');
+            const movies = cinemaAPI.getFilms();
             displayMovies(movies);
         } catch (error) {
             console.error('Ошибка загрузки фильмов:', error);
@@ -356,7 +332,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    
     document.getElementById('saveMovieBtn').addEventListener('click', async () => {
         const form = document.getElementById('movieForm');
         const formData = new FormData(form);
@@ -393,11 +368,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
     
-    
-    
     async function loadHalls() {
         try {
-            const halls = await cinemaAPI.getHalls();
+			await cinemaAPI.request('alldata');
+            const halls = cinemaAPI.getHalls();
             displayHalls(halls);
         } catch (error) {
             console.error('Ошибка загрузки залов:', error);
@@ -494,13 +468,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    
-    
     async function loadScreenings() {
         try {
-            
-            const today = new Date().toISOString().split('T')[0];
-            const screenings = await cinemaAPI.getScreenings(today);
+            await cinemaAPI.getAllData();
+            const screenings = cinemaAPI.getSeances();
             displayScreenings(screenings);
         } catch (error) {
             console.error('Ошибка загрузки сеансов:', error);
@@ -555,12 +526,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         attachScreeningEventListeners();
     }
-    
-    
-    
+    /*
+id: 3833
+seance_filmid: 1772
+seance_hallid: 5536
+seance_time: "10:20"
+	*/
     async function loadBookings() {
         try {
-            const bookings = await cinemaAPI.getBookings();
+            await cinemaAPI.getAllData();
+            const seanses = cinemaAPI.getSeances();
+			const aSeansesName = seanses.map(it => cinemaAPI.getHall(it.seance_hallid).hall_name.toUpperCase()
+											+" "+ it.seance_time +" "+ cinemaAPI.getFilm(it.seance_filmid).film_name);
+			const answer = await openModalWithDateAndSelect(aSeansesName);
+            const bookings = await cinemaAPI.getBookings(seanses[answer.select].id, answer.date);
             displayBookings(bookings);
         } catch (error) {
             console.error('Ошибка загрузки бронирований:', error);
@@ -627,8 +606,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         attachBookingEventListeners();
     }
-    
-    
     
     function initModals() {
        
@@ -720,7 +697,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         return statusMap[status] || status;
     }
     
-    
     document.addEventListener('click', (e) => {
         if (e.target.tagName === 'A' && e.target.getAttribute('href') === 'admin.html') {
            
@@ -731,7 +707,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
     });
-    
     
     setInterval(async () => {
         try {
@@ -751,7 +726,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     
 });
 
-
 function formatDate(date) {
     const d = new Date(date);
     return d.toLocaleDateString('ru-RU', {
@@ -761,16 +735,13 @@ function formatDate(date) {
     });
 }
 
-
 function formatTime(time) {
     return time.substring(0, 5); 
 }
 
-
 function generateBookingCode() {
-    return 'BK' + Math.random().toString(36).substr(2, 8).toUpperCase();
+    return 'BK' + Math.random().toString(36).slice(2, 8).toUpperCase();
 }
-
 
 function validateForm(formData, rules) {
     const errors = [];
@@ -803,7 +774,6 @@ function validateEmail(email) {
     return re.test(email);
 }
 
-
 function setupImagePreview(inputId, previewId) {
     const input = document.getElementById(inputId);
     const preview = document.getElementById(previewId);
@@ -822,7 +792,6 @@ function setupImagePreview(inputId, previewId) {
     }
 }
 
-
 if (typeof window !== 'undefined') {
     window.adminUtils = {
         formatDate,
@@ -832,4 +801,100 @@ if (typeof window !== 'undefined') {
         validateEmail,
         setupImagePreview
     };
+}
+
+/**
+ * Асинхронно открывает модальное окно Bootstrap 5 с выбором даты и опции.
+ * @param {string[]} options - массив строк для выпадающего списка.
+ * @returns {Promise<{ date: string, select: string } | null>}
+ */
+async function openModalWithDateAndSelect(options, defaultDate) {
+	if(!options || options.length == 0) throw new Error('Нет доступных сеансов');
+    // Убедимся, что Bootstrap загружен
+    if (typeof bootstrap === 'undefined') {
+        throw new Error('Bootstrap не загружен. Подключите bootstrap.bundle.min.js');
+    }
+	// Валидация и нормализация даты по умолчанию
+    let initialDate = getValidDateOrDefault(defaultDate);
+
+    // Создаём уникальный ID для модального окна
+    const modalId = 'modal-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+    
+    // Строим HTML модального окна
+    const modalHTML = `
+        <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Выберите дату и опцию</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="${modalId}-date" class="form-label">Дата</label>
+                            <input type="date" class="form-control" id="${modalId}-date" value="${initialDate}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="${modalId}-select" class="form-label">Опция</label>
+                            <select class="form-select" id="${modalId}-select">
+                                ${options.map((opt, index) => `<option value="${index}">${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-primary" id="${modalId}-ok">ОК</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Вставляем модалку в DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modalElement = document.getElementById(modalId);
+
+    // Создаём экземпляр модального окна
+    const modal = new bootstrap.Modal(modalElement);
+
+    // Возвращаем Promise, который разрешится при выборе пользователя
+    return new Promise((resolve) => {
+        let isResolved = false; // флаг, чтобы не вызвать resolve дважды
+
+        // Обработчик кнопки ОК
+        const onOk = () => {
+            if (isResolved) return;
+            isResolved = true;
+
+            const dateValue = document.getElementById(`${modalId}-date`).value;
+            const selectValue = document.getElementById(`${modalId}-select`).value;
+
+            // Скрываем модалку (она закроется, но обработчик hidden всё равно сработает)
+            modal.hide();
+
+            // Разрешаем промис с результатами
+            resolve({ date: dateValue, select: selectValue });
+        };
+
+        // Обработчик скрытия модалки (сработает при любом закрытии)
+        const onHidden = () => {
+            if (isResolved) return;
+            isResolved = true;
+
+            // Если закрыли без ОК, разрешаем с null
+            resolve(null);
+        };
+
+        // Подключаем обработчики
+        modalElement.addEventListener('hidden.bs.modal', onHidden, { once: true });
+        modalElement.querySelector(`#${modalId}-ok`).addEventListener('click', onOk, { once: true });
+
+        // Показываем модалку
+        modal.show();
+
+        // Очистка после скрытия (удаляем элемент из DOM)
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            modalElement.remove();
+        }, { once: true });
+    });
 }

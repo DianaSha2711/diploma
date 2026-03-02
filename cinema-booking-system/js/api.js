@@ -17,18 +17,11 @@ class CinemaAPI {
 
             if (method === 'POST') {// && data instanceof FormData
                 options.body = data;
+            } else if(method === 'GET' && data){
+				url += "?" + data.toString();
+			}
 
-            }
-
-            /*else if (method === 'POST' && data) {
-                const formData = new FormData();
-                Object.keys(data).forEach(key => {
-                    formData.append(key, data[key]);
-                });
-                options.body = formData;
-            }*/
-
-            console.log(`📡 Запрос: ${method} ${url}`, data || '');
+            console.log(`📡 Запрос: ${method} ${url}`, options || '');
 
             const response = await fetch(url, options);
             const result = await response.json();
@@ -79,8 +72,9 @@ class CinemaAPI {
      * @param {number} id - ID фильма
      * @returns {Promise<Object|null>} Объект фильма или null
      */
-    async getFilm(id) {
-        const films = await this.getFilms();
+    getFilm(id) {
+        const films = this.getFilms();
+		if(!films) return null;
         return films.find(f => f.id === parseInt(id)) || null;
     }
 
@@ -184,12 +178,8 @@ class CinemaAPI {
 
     // ============= SEANCES (бывшие SCREENINGS) =============
 
-    /**
-     * Получить список всех сеансов
-     * @param {string} date - Дата в формате YYYY-MM-DD (опционально)
-     * @returns {Promise<Array>} Массив сеансов
-     */
     getSeances() {
+		if(!this.oALLData) return []
         return this.oALLData.seances || [];
     }
 
@@ -284,13 +274,11 @@ class CinemaAPI {
         return this.request('ticket', 'POST', formData);
     }
 
-    async getBookings(date = null) {
-        if (date) {
-            const formData = new FormData();
-            formData.append('date', date);
-            return this.request('booking/get', 'POST', formData);
-        }
-        return this.request('booking/get');
+    async getBookings(seanceId, date = "2023-12-01") {
+        if (!date) throw new Error('getBookings error: Нет seanceId');
+
+		const params = new URLSearchParams({'seanceId': seanceId, 'date':date});
+		return await this.request('hallconfig', 'GET', params);
     }
 
     async getBooking(code) {
@@ -307,17 +295,17 @@ class CinemaAPI {
     // ============= DASHBOARD =============
 
     async getDashboardStats() {
-        const data = await this.request('alldata');
+        this.allData = await this.request('alldata');
 
         return {
-            totalFilms: data.movies?.length || 0,
-            totalMovies: data.movies?.length || 0,
-            totalHalls: data.halls?.length || 0,
-            todayBookings: data.bookings?.filter(b => {
+            totalFilms:  this.allData.movies?.length || 0,
+            totalMovies: this.allData.movies?.length || 0,
+            totalHalls: this.allData.halls?.length || 0,
+            todayBookings: this.allData.bookings?.filter(b => {
                 const today = new Date().toISOString().split('T')[0];
                 return b.date === today;
             }).length || 0,
-            totalRevenue: data.bookings?.reduce((sum, b) => sum + (b.total_price || b.totalPrice || 0), 0) || 0
+            totalRevenue: this.allData.bookings?.reduce((sum, b) => sum + (b.total_price || b.totalPrice || 0), 0) || 0
         };
     }
 
@@ -400,6 +388,42 @@ async function testAPI() {
     }
 }
 
+/**
+ * Вспомогательная функция для получения валидной даты в формате YYYY-MM-DD.
+ * @param {string} dateStr - строка с датой для проверки.
+ * @returns {string} - строка даты в формате YYYY-MM-DD (текущая, если входная невалидна).
+ */
+function getValidDateOrDefault(dateStr) {
+    // Функция для получения сегодняшней даты в локальном формате YYYY-MM-DD
+    const getTodayString = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    // Если аргумент не передан, возвращаем сегодня
+    if (typeof dateStr !== 'string') {
+        return getTodayString();
+    }
+
+    // Проверка формата регулярным выражением
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateStr)) {
+        return getTodayString();
+    }
+
+    // Проверка, что дата реально существует (например, не 2023-02-30)
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    // Проверяем, что после преобразования компоненты совпадают (корректная дата)
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+        return getTodayString();
+    }
+
+    return dateStr;
+}
 
 console.log('✅ CinemaAPI загружен с поддержкой Films и Seances');
 console.log('📌 Доступные методы:');
