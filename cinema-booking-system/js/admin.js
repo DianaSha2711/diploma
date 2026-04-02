@@ -1,900 +1,387 @@
+// Глобальное состояние приложения
+let state = {
+    halls: [],
+    films: [],
+    selectedConfigHall: null,
+    selectedPriceHall: null,
+    selectedSalesHall: null,
+    seatingConfig: [] // Для хранения временной схемы зала
+};
 
-let currentEditingMovieId = null;
-let currentEditingHallId = null;
-let currentEditingScreeningId = null;
+// Инициализация приложения
+document.addEventListener('DOMContentLoaded', async () => {
+    // Загружаем все данные с сервера
+    await loadInitialData();
 
-document.addEventListener('DOMContentLoaded', async function() {
-    
-    const token = localStorage.getItem('cinema_admin_token');
-    const userStr = localStorage.getItem('cinema_admin_user');
-    
-    if (!token || !userStr) {
-       
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    try {
-      
-        const isValid = await cinemaAPI.validateSession();
-        if (!isValid) {
-            localStorage.removeItem('cinema_admin_token');
-            localStorage.removeItem('cinema_admin_user');
-            window.location.href = 'login.html';
-            return;
-        }
-    } catch (error) {
-        console.warn('Ошибка проверки сессии:', error);
-        
-    }
-    
-    displayUserInfo();
-    
-    
-    await initAdminPanel();
-    
-    
-    
-    async function initAdminPanel() {
-        
-        await loadDashboardStats();
-        
-        initNavigation();
-        
-        initModals();
-    }
-    
-    function displayUserInfo() {
-        try {
-            const user = JSON.parse(localStorage.getItem('cinema_admin_user'));
-            
-            
-            const userInfo = document.createElement('div');
-            userInfo.className = 'user-info';
-            userInfo.innerHTML = `
-                <div class="dropdown">
-                    <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" 
-                            type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-2"></i>
-                        <span>${user.name || user.username}</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <div class="dropdown-header">
-                                <small>Вы вошли как</small><br>
-                                <strong>${user.name || user.username}</strong>
-                            </div>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="#" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt me-2"></i> Выйти
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            `;
-            
-            
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.appendChild(userInfo);
-            
-            
-            document.getElementById('logoutBtn').addEventListener('click', function(e) {
-                e.preventDefault();
-              
-                localStorage.removeItem('cinema_admin_token');
-                localStorage.removeItem('cinema_admin_user');
-                
-                
-                window.location.href = 'login.html';
-            });
-            
-        } catch (error) {
-            console.error('Ошибка отображения информации о пользователе:', error);
-        }
-    }
-    
-    function initNavigation() {
-        
-        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                
-                document.querySelectorAll('.sidebar .nav-link').forEach(l => {
-                    l.classList.remove('active');
-                });
-                
-                
-                this.classList.add('active');
-                
-                
-                const sectionId = this.getAttribute('href').substring(1);
+    // Рендерим все секции
+    renderHallsManagement();
+    renderHallTabs();
+    renderFilmsList();
+    renderTimelines();
 
-				document.querySelectorAll('.admin-section').forEach(section => {
-					section.style.display = 'none';
-				});
-				
-				const section = document.getElementById(sectionId);
-				if (section) {
-					section.style.display = 'block';
-					loadSectionData(sectionId);
-				}
-            });
-        });
-    }
-    
-    async function loadSectionData(sectionId) {
-        switch(sectionId) {
-            case 'dashboard':
-                loadDashboardStats();
-                break;
-            case 'movies':
-                loadMovies();
-                break;
-            case 'halls':
-                loadHalls();
-                break;
-            case 'screenings':
-                loadScreenings();
-                break;
-            case 'bookings':
-                await loadBookings();
-                break;
-        }
-    }
-    
-    async function loadDashboardStats() {
-        try {
-            
-            const stats = await cinemaAPI.getDashboardStats();
-            
-            
-            if (stats.totalMovies !== undefined) {
-                document.getElementById('totalMovies').textContent = stats.totalMovies;
-            }
-            
-            if (stats.totalHalls !== undefined) {
-                document.getElementById('totalHalls').textContent = stats.totalHalls;
-            }
-            
-            if (stats.todayBookings !== undefined) {
-                document.getElementById('todayBookings').textContent = stats.todayBookings;
-            }
-            
-            if (stats.totalRevenue !== undefined) {
-                document.getElementById('totalRevenue').textContent = `${stats.totalRevenue} руб.`;
-            }
-            
-        } catch (error) {
-            console.error('Ошибка загрузки статистики:', error);
-            
-            
-            document.getElementById('totalMovies').textContent = Math.floor(Math.random() * 20) + 5;
-            document.getElementById('totalHalls').textContent = Math.floor(Math.random() * 5) + 2;
-            document.getElementById('todayBookings').textContent = Math.floor(Math.random() * 50) + 10;
-            document.getElementById('totalRevenue').textContent = `${(Math.random() * 50000 + 10000).toFixed(0)} руб.`;
-        }
-    }
-    
-    async function loadMovies() {
-        try {
-			await this.request('alldata');
-            const movies = cinemaAPI.getFilms();
-            displayMovies(movies);
-        } catch (error) {
-            console.error('Ошибка загрузки фильмов:', error);
-            showErrorMessage('moviesTable', 'Ошибка загрузки фильмов');
-        }
-    }
-    
-    function displayMovies(movies) {
-        const tableBody = document.getElementById('moviesTable');
-        
-        if (movies.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center py-4">
-                        <p class="text-muted">Фильмы не найдены</p>
-                        <button class="btn btn-sm btn-primary" id="addMovieBtnEmpty">
-                            <i class="fas fa-plus"></i> Добавить первый фильм
-                        </button>
-                    </td>
-                </tr>
-            `;
-            
-            document.getElementById('addMovieBtnEmpty').addEventListener('click', () => {
-                showMovieModal();
-            });
-            
-            return;
-        }
-        
-        tableBody.innerHTML = '';
-        
-        movies.forEach(movie => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <img src="${movie.poster || 'https://via.placeholder.com/50x75?text=No+Poster'}" 
-                         alt="${movie.title}" 
-                         class="movie-poster-small rounded">
-                </td>
-                <td>
-                    <strong>${movie.title}</strong><br>
-                    <small class="text-muted">${movie.genre || 'Не указан'}</small>
-                </td>
-                <td>${movie.duration || 0} мин.</td>
-                <td>
-                    <span class="badge ${movie.rating >= 8 ? 'bg-success' : movie.rating >= 6 ? 'bg-warning' : 'bg-secondary'}">
-                        ${movie.rating || 'N/A'}
-                    </span>
-                </td>
-                <td>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-warning edit-movie" 
-                                data-id="${movie.id}"
-                                title="Редактировать">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-outline-danger delete-movie" 
-                                data-id="${movie.id}"
-                                title="Удалить">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            
-            tableBody.appendChild(row);
-        });
-        
-        
-        attachMovieEventListeners();
-    }
-    
-    function attachMovieEventListeners() {
-        
-        document.getElementById('addMovieBtn').addEventListener('click', () => {
-            showMovieModal();
-        });
-        
-        
-        document.querySelectorAll('.edit-movie').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                const movieId = e.currentTarget.dataset.id;
-                await editMovie(movieId);
-            });
-        });
-        
-        
-        document.querySelectorAll('.delete-movie').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                const movieId = e.currentTarget.dataset.id;
-                const movieTitle = e.currentTarget.closest('tr').querySelector('td:nth-child(2) strong').textContent;
-                
-                if (confirm(`Удалить фильм "${movieTitle}"?`)) {
-                    await deleteMovie(movieId);
-                }
-            });
-        });
-    }
-    
-    function showMovieModal(movie = null) {
-        const modal = new bootstrap.Modal(document.getElementById('movieModal'));
-        const form = document.getElementById('movieForm');
-        
-        form.reset();
-        
-        if (movie) {
-            
-            document.getElementById('modalTitle').textContent = 'Редактировать фильм';
-            document.getElementById('saveMovieBtn').textContent = 'Сохранить изменения';
-            
-            
-            form.querySelector('[name="title"]').value = movie.title || '';
-            form.querySelector('[name="description"]').value = movie.description || '';
-            form.querySelector('[name="genre"]').value = movie.genre || '';
-            form.querySelector('[name="duration"]').value = movie.duration || '';
-            form.querySelector('[name="poster"]').value = movie.poster || '';
-            form.querySelector('[name="rating"]').value = movie.rating || '';
-            
-            currentEditingMovieId = movie.id;
-        } else {
-            
-            document.getElementById('modalTitle').textContent = 'Добавить фильм';
-            document.getElementById('saveMovieBtn').textContent = 'Добавить фильм';
-            currentEditingMovieId = null;
-        }
-        
-        modal.show();
-    }
-    
-    async function editMovie(movieId) {
-        try {
-            const movie = await cinemaAPI.getMovie(movieId);
-            showMovieModal(movie);
-        } catch (error) {
-            console.error('Ошибка загрузки фильма:', error);
-            showToast('Ошибка загрузки фильма', 'danger');
-        }
-    }
-    
-    async function deleteMovie(movieId) {
-        try {
-            await cinemaAPI.deleteMovie(movieId);
-            await loadMovies();
-            showToast('Фильм успешно удален', 'success');
-        } catch (error) {
-            console.error('Ошибка удаления фильма:', error);
-            showToast('Ошибка удаления фильма', 'danger');
-        }
-    }
-    
-    document.getElementById('saveMovieBtn').addEventListener('click', async () => {
-        const form = document.getElementById('movieForm');
-        const formData = new FormData(form);
-        
-        const movieData = {
-            title: formData.get('title'),
-            description: formData.get('description'),
-            genre: formData.get('genre'),
-            duration: parseInt(formData.get('duration')) || 0,
-            poster: formData.get('poster') || null,
-            rating: parseFloat(formData.get('rating')) || null
-        };
-        
-        try {
-            if (currentEditingMovieId) {
-                
-                await cinemaAPI.updateMovie(currentEditingMovieId, movieData);
-                showToast('Фильм успешно обновлен', 'success');
-            } else {
-                
-                await cinemaAPI.createMovie(movieData);
-                showToast('Фильм успешно добавлен', 'success');
-            }
-            
-            
-            bootstrap.Modal.getInstance(document.getElementById('movieModal')).hide();
-            
-            
-            await loadMovies();
-            
-        } catch (error) {
-            console.error('Ошибка сохранения фильма:', error);
-            showToast(error.message || 'Ошибка сохранения фильма', 'danger');
-        }
-    });
-    
-    async function loadHalls() {
-        try {
-			await cinemaAPI.request('alldata');
-            const halls = cinemaAPI.getHalls();
-            displayHalls(halls);
-        } catch (error) {
-            console.error('Ошибка загрузки залов:', error);
-            showErrorMessage('hallsList', 'Ошибка загрузки залов');
-        }
-    }
-    
-    function displayHalls(halls) {
-        const hallsList = document.getElementById('hallsList');
-        
-        if (halls.length === 0) {
-            hallsList.innerHTML = `
-                <div class="col-12">
-                    <div class="alert alert-info">
-                        <p class="mb-0">Залы не найдены</p>
-                    </div>
-                    <button class="btn btn-primary" id="addHallBtnEmpty">
-                        <i class="fas fa-plus"></i> Добавить первый зал
-                    </button>
-                </div>
-            `;
-            
-            document.getElementById('addHallBtnEmpty').addEventListener('click', () => {
-                showHallModal();
-            });
-            
-            return;
-        }
-        
-        hallsList.innerHTML = '';
-        
-        halls.forEach(hall => {
-            const hallCard = document.createElement('div');
-            hallCard.className = 'col-md-6 col-lg-4 mb-4';
-            hallCard.innerHTML = `
-                <div class="card hall-card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">${hall.name}</h5>
-                        <p class="card-text">
-                            <i class="fas fa-th me-2"></i>
-                            <strong>${hall.rows} × ${hall.seatsPerRow}</strong> мест<br>
-                            <i class="fas fa-crown me-2"></i>
-                            VIP ряды: <strong>${hall.vipRows?.join(', ') || 'нет'}</strong><br>
-                            <i class="fas fa-wifi me-2"></i>
-                            ${hall.has3D ? '3D' : '2D'}
-                        </p>
-                        <p class="card-text text-muted small">
-                            ${hall.description || 'Нет описания'}
-                        </p>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <div class="btn-group w-100">
-                            <button class="btn btn-outline-warning edit-hall" 
-                                    data-id="${hall.id}">
-                                <i class="fas fa-edit"></i> Редактировать
-                            </button>
-                            <button class="btn btn-outline-danger delete-hall" 
-                                    data-id="${hall.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            hallsList.appendChild(hallCard);
-        });
-        
-        
-        attachHallEventListeners();
-    }
-    
-    function attachHallEventListeners() {
-        
-        document.getElementById('addHallBtn').addEventListener('click', () => {
-            showHallModal();
-        });
-        
-        
-        document.getElementById('hallsList').addEventListener('click', async (e) => {
-            if (e.target.closest('.edit-hall')) {
-                const hallId = e.target.closest('.edit-hall').dataset.id;
-                await editHall(hallId);
-            }
-            
-            if (e.target.closest('.delete-hall')) {
-                const hallId = e.target.closest('.delete-hall').dataset.id;
-                const hallName = e.target.closest('.hall-card').querySelector('.card-title').textContent;
-                
-                if (confirm(`Удалить зал "${hallName}"?`)) {
-                    await deleteHall(hallId);
+    // Назначаем обработчики событий
+    setupEventListeners();
+
+    for (let i = 1; i < 6; i++) {
+        const sBlockname = "section" + i + "contain";
+        const sCTRL = "section" + i + "ctrl";
+        const domSection1ctrl = document.getElementById(sCTRL);
+        const domSection1cont = document.getElementById(sBlockname);
+        if (domSection1cont && domSection1ctrl) {
+            domSection1ctrl.onclick = () => {
+                if (domSection1cont.style.display == "none") {
+                    domSection1ctrl.src = "img/chevron-down.svg";
+                    domSection1cont.style.display = "";
+                } else {
+                    domSection1cont.style.display = "none";
+                    domSection1ctrl.src = "img/chevron-right.svg"
                 }
             }
-        });
-    }
-    
-    async function loadScreenings() {
-        try {
-            await cinemaAPI.getAllData();
-            const screenings = cinemaAPI.getSeances();
-            displayScreenings(screenings);
-        } catch (error) {
-            console.error('Ошибка загрузки сеансов:', error);
-            showErrorMessage('screeningsTable', 'Ошибка загрузки сеансов');
         }
     }
-    
-    function displayScreenings(screenings) {
-        const tableBody = document.getElementById('screeningsTable');
-        
-        if (!screenings || screenings.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center py-4">
-                        <p class="text-muted">Сеансы не найдены</p>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-        
-        tableBody.innerHTML = '';
-        
-        screenings.forEach(screening => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${screening.movie?.title || 'Неизвестный фильм'}</td>
-                <td>${screening.hall?.name || 'Неизвестный зал'}</td>
-                <td>${screening.date}</td>
-                <td>${screening.time}</td>
-                <td>
-                    <span class="badge bg-info">
-                        ${screening.price} руб.${screening.vipPrice ? ` (VIP: ${screening.vipPrice} руб.)` : ''}
-                    </span>
-                </td>
-                <td>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-warning edit-screening" 
-                                data-id="${screening.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-outline-danger delete-screening" 
-                                data-id="${screening.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            
-            tableBody.appendChild(row);
-        });
-        
-        attachScreeningEventListeners();
-    }
-    /*
-id: 3833
-seance_filmid: 1772
-seance_hallid: 5536
-seance_time: "10:20"
-	*/
-    async function loadBookings() {
-        try {
-            await cinemaAPI.getAllData();
-            const seanses = cinemaAPI.getSeances();
-			const aSeansesName = seanses.map(it => cinemaAPI.getHall(it.seance_hallid).hall_name.toUpperCase()
-											+" "+ it.seance_time +" "+ cinemaAPI.getFilm(it.seance_filmid).film_name);
-			const answer = await openModalWithDateAndSelect(aSeansesName);
-            const bookings = await cinemaAPI.getBookings(seanses[answer.select].id, answer.date);
-            displayBookings(bookings);
-        } catch (error) {
-            console.error('Ошибка загрузки бронирований:', error);
-            showErrorMessage('bookingsTable', 'Ошибка загрузки бронирований');
-        }
-    }
-    
-    function displayBookings(bookings) {
-        const tableBody = document.getElementById('bookingsTable');
-        
-        if (!bookings || bookings.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center py-4">
-                        <p class="text-muted">Бронирования не найдены</p>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-        
-        tableBody.innerHTML = '';
-        
-        bookings.forEach(booking => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <code>${booking.code}</code><br>
-                    <small class="text-muted">${new Date(booking.createdAt).toLocaleString()}</small>
-                </td>
-                <td>
-                    <strong>${booking.screening?.movie?.title || 'Неизвестный фильм'}</strong><br>
-                    <small>${booking.screening?.date} ${booking.screening?.time}</small>
-                </td>
-                <td>${booking.seats?.map(s => `${s.row}-${s.seat}`).join(', ') || '—'}</td>
-                <td>
-                    <strong>${booking.customerInfo?.name || 'Не указано'}</strong><br>
-                    <small>${booking.customerInfo?.phone || ''}</small>
-                </td>
-                <td><strong>${booking.totalPrice} руб.</strong></td>
-                <td>
-                    <span class="badge ${getStatusBadgeClass(booking.status)}">
-                        ${getStatusText(booking.status)}
-                    </span>
-                </td>
-                <td>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-info view-booking" 
-                                data-code="${booking.code}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${booking.status === 'confirmed' ? `
-                            <button class="btn btn-outline-warning cancel-booking" 
-                                    data-code="${booking.code}">
-                                <i class="fas fa-ban"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                </td>
-            `;
-            
-            tableBody.appendChild(row);
-        });
-        
-        attachBookingEventListeners();
-    }
-    
-    function initModals() {
-       
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    bootstrap.Modal.getInstance(modal).hide();
-                }
-            });
-        });
-    }
-    
-    function showToast(message, type = 'info') {
-        
-        const toastContainer = document.getElementById('toastContainer') || createToastContainer();
-        
-        const toastId = 'toast-' + Date.now();
-        const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-bg-${type}`;
-        toast.id = toastId;
-        toast.setAttribute('role', 'alert');
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-        
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                        data-bs-dismiss="toast"></button>
-            </div>
-        `;
-        
-        toastContainer.appendChild(toast);
-        
-        const bsToast = new bootstrap.Toast(toast, {
-            autohide: true,
-            delay: 3000
-        });
-        
-        bsToast.show();
-        
-        
-        toast.addEventListener('hidden.bs.toast', () => {
-            toast.remove();
-        });
-    }
-    
-    function createToastContainer() {
-        const container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-        container.style.zIndex = '1060';
-        document.body.appendChild(container);
-        return container;
-    }
-    
-    function showErrorMessage(elementId, message) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    ${message}
-                </div>
-            `;
-        }
-    }
-    
-    function getStatusBadgeClass(status) {
-        switch(status) {
-            case 'confirmed': return 'bg-success';
-            case 'pending': return 'bg-warning';
-            case 'cancelled': return 'bg-danger';
-            case 'completed': return 'bg-info';
-            default: return 'bg-secondary';
-        }
-    }
-    
-    function getStatusText(status) {
-        const statusMap = {
-            'confirmed': 'Подтверждено',
-            'pending': 'Ожидание',
-            'cancelled': 'Отменено',
-            'completed': 'Завершено'
-        };
-        return statusMap[status] || status;
-    }
-    
-    document.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A' && e.target.getAttribute('href') === 'admin.html') {
-           
-            const token = localStorage.getItem('cinema_admin_token');
-            if (!token) {
-                e.preventDefault();
-                window.location.href = 'login.html';
-            }
-        }
-    });
-    
-    setInterval(async () => {
-        try {
-            const isValid = await cinemaAPI.validateSession();
-            if (!isValid) {
-                showToast('Сессия истекла. Пожалуйста, войдите снова.', 'warning');
-                setTimeout(() => {
-                    localStorage.removeItem('cinema_admin_token');
-                    localStorage.removeItem('cinema_admin_user');
-                    window.location.href = 'login.html';
-                }, 5000);
-            }
-        } catch (error) {
-           
-        }
-    }, 5 * 60 * 1000); 
-    
+
 });
 
-function formatDate(date) {
-    const d = new Date(date);
-    return d.toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-}
-
-function formatTime(time) {
-    return time.substring(0, 5); 
-}
-
-function generateBookingCode() {
-    return 'BK' + Math.random().toString(36).slice(2, 8).toUpperCase();
-}
-
-function validateForm(formData, rules) {
-    const errors = [];
-    
-    for (const [field, rule] of Object.entries(rules)) {
-        const value = formData.get(field);
-        
-        if (rule.required && (!value || value.trim() === '')) {
-            errors.push(`Поле "${rule.label}" обязательно для заполнения`);
-        }
-        
-        if (rule.minLength && value && value.length < rule.minLength) {
-            errors.push(`Поле "${rule.label}" должно содержать минимум ${rule.minLength} символов`);
-        }
-        
-        if (rule.type === 'number' && value && isNaN(parseFloat(value))) {
-            errors.push(`Поле "${rule.label}" должно быть числом`);
-        }
-        
-        if (rule.type === 'email' && value && !validateEmail(value)) {
-            errors.push(`Поле "${rule.label}" должно содержать валидный email`);
-        }
+// Функция загрузки начальных данных
+async function loadInitialData() {
+    try {
+        // Получаем все данные одним запросом, как в ТЗ
+        const allData = await cinemaAPI.getAllData();
+        // Предполагаем, что в allData есть поля halls и films
+        state.halls = allData.halls || await cinemaAPI.getHalls();
+        state.films = allData.films || await cinemaAPI.getFilms();
+    } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        // Заглушки на случай ошибки API
+        state.halls = state.halls.length ? state.halls : [{ id: 1, name: 'Зал 1' }];
+        state.films = state.films.length ? state.films : [{ id: 1, name: 'Пример фильма', duration: 120, poster: '', country: 'РФ' }];
     }
-    
-    return errors;
 }
 
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
+// 1. Управление залами
+function renderHallsManagement() {
+    const container = document.getElementById('halls-list');
+    container.innerHTML = '';
 
-function setupImagePreview(inputId, previewId) {
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
-    
-    if (input && preview) {
-        input.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
+    state.halls.forEach(hall => {
+        const hallDiv = document.createElement('div');
+        hallDiv.className = 'hall-item';
+        hallDiv.innerHTML = `
+            <span>${hall.hall_name}</span>
+            <button class="delete-hall" data-id="${hall.id}">🗑️</button>
+        `;
+        container.appendChild(hallDiv);
+    });
+
+    // Добавляем обработчики на кнопки удаления
+    document.querySelectorAll('.delete-hall').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const hallId = e.target.dataset.id;
+            deleteHall(hallId);
         });
-    }
-}
-
-if (typeof window !== 'undefined') {
-    window.adminUtils = {
-        formatDate,
-        formatTime,
-        generateBookingCode,
-        validateForm,
-        validateEmail,
-        setupImagePreview
-    };
-}
-
-/**
- * Асинхронно открывает модальное окно Bootstrap 5 с выбором даты и опции.
- * @param {string[]} options - массив строк для выпадающего списка.
- * @returns {Promise<{ date: string, select: string } | null>}
- */
-async function openModalWithDateAndSelect(options, defaultDate) {
-	if(!options || options.length == 0) throw new Error('Нет доступных сеансов');
-    // Убедимся, что Bootstrap загружен
-    if (typeof bootstrap === 'undefined') {
-        throw new Error('Bootstrap не загружен. Подключите bootstrap.bundle.min.js');
-    }
-	// Валидация и нормализация даты по умолчанию
-    let initialDate = getValidDateOrDefault(defaultDate);
-
-    // Создаём уникальный ID для модального окна
-    const modalId = 'modal-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
-    
-    // Строим HTML модального окна
-    const modalHTML = `
-        <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Выберите дату и опцию</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="${modalId}-date" class="form-label">Дата</label>
-                            <input type="date" class="form-control" id="${modalId}-date" value="${initialDate}">
-                        </div>
-                        <div class="mb-3">
-                            <label for="${modalId}-select" class="form-label">Опция</label>
-                            <select class="form-select" id="${modalId}-select">
-                                ${options.map((opt, index) => `<option value="${index}">${opt}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="button" class="btn btn-primary" id="${modalId}-ok">ОК</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Вставляем модалку в DOM
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    const modalElement = document.getElementById(modalId);
-
-    // Создаём экземпляр модального окна
-    const modal = new bootstrap.Modal(modalElement);
-
-    // Возвращаем Promise, который разрешится при выборе пользователя
-    return new Promise((resolve) => {
-        let isResolved = false; // флаг, чтобы не вызвать resolve дважды
-
-        // Обработчик кнопки ОК
-        const onOk = () => {
-            if (isResolved) return;
-            isResolved = true;
-
-            const dateValue = document.getElementById(`${modalId}-date`).value;
-            const selectValue = document.getElementById(`${modalId}-select`).value;
-
-            // Скрываем модалку (она закроется, но обработчик hidden всё равно сработает)
-            modal.hide();
-
-            // Разрешаем промис с результатами
-            resolve({ date: dateValue, select: selectValue });
-        };
-
-        // Обработчик скрытия модалки (сработает при любом закрытии)
-        const onHidden = () => {
-            if (isResolved) return;
-            isResolved = true;
-
-            // Если закрыли без ОК, разрешаем с null
-            resolve(null);
-        };
-
-        // Подключаем обработчики
-        modalElement.addEventListener('hidden.bs.modal', onHidden, { once: true });
-        modalElement.querySelector(`#${modalId}-ok`).addEventListener('click', onOk, { once: true });
-
-        // Показываем модалку
-        modal.show();
-
-        // Очистка после скрытия (удаляем элемент из DOM)
-        modalElement.addEventListener('hidden.bs.modal', () => {
-            modalElement.remove();
-        }, { once: true });
     });
+}
+
+function deleteHall(hallId) {
+    state.halls = state.halls.filter(h => h.id != hallId);
+    renderHallsManagement();
+    renderHallTabs(); // Обновляем табы во всех секциях
+}
+
+function addHall() {
+    const newId = Math.max(...state.halls.map(h => h.id), 0) + 1;
+    const newHall = { id: newId, name: `Зал ${newId}` };
+    state.halls.push(newHall);
+    renderHallsManagement();
+    renderHallTabs();
+}
+
+// 2. Конфигурация залов (табы и схема)
+function renderHallTabs() {
+    renderTabs('config-hall-tabs', 'config', (hall) => selectHall('config', hall.id));
+    renderTabs('prices-hall-tabs', 'prices', (hall) => selectHall('prices', hall.id));
+    renderTabs('sales-hall-tabs', 'sales', (hall) => selectHall('sales', hall.id));
+}
+
+function renderTabs(containerId, type, onClick) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    state.halls.forEach(hall => {
+        const btn = document.createElement('button');
+        btn.className = 'hall-tab';
+        if ((type === 'config' && state.selectedConfigHall === hall.id) ||
+            (type === 'prices' && state.selectedPriceHall === hall.id) ||
+            (type === 'sales' && state.selectedSalesHall === hall.id)) {
+            btn.classList.add('active');
+        }
+        btn.textContent = hall.name;
+        btn.addEventListener('click', () => onClick(hall));
+        container.appendChild(btn);
+    });
+}
+
+async function selectHall(type, hall) {
+    const hallId = typeof hall === 'object' ? hall.id : hall;
+
+    if (type === 'config') {
+        state.selectedConfigHall = hallId;
+        renderHallTabs();
+        await loadHallConfig(hallId);
+    } else if (type === 'prices') {
+        state.selectedPriceHall = hallId;
+        renderHallTabs();
+        await loadHallPrices(hallId);
+    } else if (type === 'sales') {
+        state.selectedSalesHall = hallId;
+        renderHallTabs();
+    }
+}
+
+async function loadHallConfig(hallId) {
+    try {
+        const hallData = await cinemaAPI.getHall(hallId);
+        // Здесь должна быть логика отображения схемы зала
+        generateSeatingChart(hallData);
+    } catch (error) {
+        console.error('Ошибка загрузки конфигурации зала:', error);
+        // Заглушка
+        generateSeatingChart({ rows: 5, cols: 5, seats: [] });
+    }
+}
+
+function generateSeatingChart(hallData) {
+    const chart = document.getElementById('seating-chart');
+    const rows = hallData.rows || 5;
+    const cols = hallData.cols || 5;
+
+    chart.innerHTML = '';
+    for (let r = 0; r < rows; r++) {
+        const row = document.createElement('div');
+        row.className = 'seat_row';
+        for (let c = 0; c < cols; c++) {
+            const seat = document.createElement('div');
+            seat.className = 'seat'; // По умолчанию обычное
+            // Здесь можно добавить логику определения типа из hallData.seats
+            seat.addEventListener('click', () => toggleSeatType(seat));
+            row.appendChild(seat);
+        }
+        chart.appendChild(row);
+    }
+}
+
+function toggleSeatType(seatElement) {
+    if (seatElement.classList.contains('vip')) {
+        seatElement.classList.remove('vip');
+        seatElement.classList.add('disabled');
+    } else if (seatElement.classList.contains('disabled')) {
+        seatElement.classList.remove('disabled');
+    } else {
+        seatElement.classList.add('vip');
+    }
+}
+
+async function loadHallPrices(hallId) {
+    try {
+        const hallData = await cinemaAPI.getHall(hallId);
+        document.getElementById('price-regular').value = hallData.priceRegular || 0;
+        document.getElementById('price-vip').value = hallData.priceVip || 0;
+    } catch (error) {
+        console.error('Ошибка загрузки цен:', error);
+    }
+}
+
+// 3. Фильмы и сетка сеансов
+function renderFilmsList() {
+    const container = document.getElementById('films-list');
+    container.innerHTML = '';
+
+    // Цвета для фильмов
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
+
+    state.films.forEach((film, index) => {
+        const filmEl = document.createElement('div');
+        filmEl.className = 'film-tag';
+        filmEl.style.backgroundColor = colors[index % colors.length];
+        filmEl.draggable = true;
+        filmEl.dataset.filmId = film.id;
+        filmEl.dataset.duration = film.duration;
+
+        filmEl.innerHTML = `
+            <img src="${film.poster || 'https://via.placeholder.com/30x40'}" alt="${film.name}">
+            <span>${film.name} (${film.duration} мин)</span>
+        `;
+
+        // Drag & Drop
+        filmEl.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                id: film.id,
+                name: film.name,
+                duration: film.duration,
+                color: colors[index % colors.length]
+            }));
+        });
+
+        container.appendChild(filmEl);
+    });
+}
+
+function renderTimelines() {
+    const container = document.getElementById('timelines');
+    container.innerHTML = '';
+
+    state.halls.forEach(hall => {
+        const timelineDiv = document.createElement('div');
+        timelineDiv.className = 'timeline';
+        timelineDiv.innerHTML = `
+            <h4>${hall.name}</h4>
+            <div class="time-scale">
+                <span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
+            </div>
+            <div class="time-slots" data-hall-id="${hall.id}"></div>
+        `;
+
+        // Обработчик drop для таймлинии
+        const slots = timelineDiv.querySelector('.time-slots');
+        slots.addEventListener('dragover', (e) => e.preventDefault());
+        slots.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const filmData = JSON.parse(e.dataTransfer.getData('text/plain'));
+            addFilmToTimeline(slots, filmData);
+        });
+
+        container.appendChild(timelineDiv);
+    });
+}
+
+function addFilmToTimeline(container, filmData) {
+    const filmBlock = document.createElement('div');
+    filmBlock.className = 'time-slot-film';
+    filmBlock.style.backgroundColor = filmData.color;
+    filmBlock.style.width = `${filmData.duration * 2}px`; // Пример: 1 мин = 2px
+    filmBlock.textContent = filmData.name;
+    filmBlock.style.left = '100px'; // Примерная позиция, нужно рассчитывать
+
+    // Клик для редактирования времени начала
+    filmBlock.addEventListener('click', () => {
+        const newTime = prompt('Введите время начала (например, 14:30):', '12:00');
+        if (newTime) {
+            // Здесь логика пересчета позиции
+            filmBlock.style.left = '200px'; // Заглушка
+        }
+    });
+
+    container.appendChild(filmBlock);
+}
+
+// 4. Форма добавления фильма
+function showAddFilmForm() {
+    document.getElementById('film-form').classList.remove('hidden');
+}
+
+function hideAddFilmForm() {
+    document.getElementById('film-form').classList.add('hidden');
+}
+
+function addNewFilm() {
+    const name = document.getElementById('film-name').value;
+    const poster = document.getElementById('film-poster').value;
+    const duration = document.getElementById('film-duration').value;
+    const country = document.getElementById('film-country').value;
+
+    if (name && duration) {
+        const newFilm = {
+            id: Date.now(),
+            name,
+            poster: poster || 'https://via.placeholder.com/30x40',
+            duration: parseInt(duration),
+            country
+        };
+        state.films.push(newFilm);
+        renderFilmsList();
+        hideAddFilmForm();
+
+        // Очищаем поля
+        document.getElementById('film-name').value = '';
+        document.getElementById('film-poster').value = '';
+        document.getElementById('film-duration').value = '';
+        document.getElementById('film-country').value = '';
+    } else {
+        alert('Заполните обязательные поля');
+    }
+}
+
+// 5. Открытие продаж
+function openSales() {
+    if (!state.selectedSalesHall) {
+        alert('Выберите зал');
+        return;
+    }
+    alert(`Продажи открыты для зала ID: ${state.selectedSalesHall}`);
+    // Здесь должен быть вызов API
+    // cinemaAPI.openSales(state.selectedSalesHall);
+}
+
+// Настройка всех обработчиков событий
+function setupEventListeners() {
+    // Добавление зала
+    document.getElementById('add-hall_btn').addEventListener('click', addHall);
+
+    // Форма добавления фильма
+    document.getElementById('add-film_btn').addEventListener('click', showAddFilmForm);
+    document.getElementById('submit-film').addEventListener('click', addNewFilm);
+    document.getElementById('cancel-film').addEventListener('click', hideAddFilmForm);
+
+    // Кнопки Отмена (просто сбрасываем)
+    document.querySelectorAll('.cancel_btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            console.log('Отмена изменений');
+            loadInitialData(); // Перезагружаем исходные данные
+        });
+    });
+
+    // Кнопки Сохранить (здесь должна быть логика отправки на API)
+    document.querySelectorAll('.save_btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            console.log('Сохранение изменений');
+            // Здесь вызов API для сохранения
+        });
+    });
+
+    // Кнопка открытия продаж
+    document.getElementById('open-sales_btn').addEventListener('click', openSales);
+}
+
+// Для демонстрации создадим заглушку API, если её нет
+if (typeof cinemaAPI === 'undefined') {
+    window.cinemaAPI = {
+        getAllData: async () => {
+            return {
+                halls: [
+                    { id: 1, name: 'Красный зал', rows: 5, cols: 6 },
+                    { id: 2, name: 'Синий зал', rows: 4, cols: 5 }
+                ],
+                films: [
+                    { id: 1, name: 'Дюна 2', duration: 155, poster: '', country: 'США' },
+                    { id: 2, name: 'Матрица', duration: 136, poster: '', country: 'США' }
+                ]
+            };
+        },
+        getHalls: async () => {
+            return [
+                { id: 1, name: 'Красный зал', rows: 5, cols: 6 },
+                { id: 2, name: 'Синий зал', rows: 4, cols: 5 }
+            ];
+        },
+        getFilms: async () => {
+            return [
+                { id: 1, name: 'Дюна 2', duration: 155, poster: '', country: 'США' },
+                { id: 2, name: 'Матрица', duration: 136, poster: '', country: 'США' }
+            ];
+        },
+        getHall: async (id) => {
+            return { id, name: `Зал ${id}`, rows: 5, cols: 6, priceRegular: 250, priceVip: 500 };
+        }
+    };
 }

@@ -431,3 +431,5 @@ console.log('   - getFilms(), getFilm(), createFilm(), updateFilm(), deleteFilm(
 console.log('   - getSeances(), getSeance(), createSeance(), updateSeance(), deleteSeance()');
 console.log('   - getStructuredData() - данные в новом формате');
 console.log('📌 Сохранена обратная совместимость со старыми названиями');
+
+

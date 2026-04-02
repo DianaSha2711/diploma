@@ -1,13 +1,15 @@
+/* ==================== Глобальные переменные и сброс ==================== */
 :root {
     --p: #ff6b6b;
     --s: #ffa500;
     --a: #ffd700;
     --g: linear-gradient(135deg, #ff6b6b, #ffa500);
     --bg: #ffffff;
-    --card: rgba(30, 30, 40, 0.8);
+    -_card: rgba(30, 30, 40, 0.8);
     --modal: #1a1a2e;
     --shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     --teal: #008080;
+	--perf-size: 3px;
 }
 
 * {
@@ -15,15 +17,26 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Roboto', Tahoma, sans-serif;
     background: url('../img/bg.png') no-repeat center center fixed;
     background-size: cover;
     min-height: 100vh;
     color: #fff;
     margin: 0;
+	display: flex;
+    flex-direction: column;
+	align-items: center;
+}
+footer {
+    position: absolute;
+    bottom: 5px;
+}
+.flex_vert{
+    display: flex;
+    flex-direction: column;
 }
 
-
+/* ==================== Компоненты навигации ==================== */
 .navbar-nav {
     display: flex;
     gap: 10px;
@@ -47,7 +60,6 @@ body {
 
 .navbar-nav .nav-link:hover {
     background-color: #004d4d;
-    transform: translateY(-2px);
 }
 
 .navbar-brand {
@@ -72,43 +84,7 @@ body {
     backdrop-filter: none;
 }
 
-.seance-hall {
-    color: black !important; 
-    font-size: 1.2rem !important; 
-    font-weight: 700;
-}
-
-.hero {
-    color: #fff;
-    padding: 80px 0;
-    text-align: center;
-    border-bottom: 3px solid var(--p);
-}
-
-.seance-card {
-    margin: 30px;
-}
-
-.hero h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-    background: var(--g);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-
-.hero p,
-.hero .lead,
-.hero .seance-today,
-[class*="seance-today"],
-[class*="session-today"],
-.seance-today-label {
-    display: none !important;
-}
-
+/* ==================== Основные контейнеры ==================== */
 .client-container,
 .admin-container,
 .popup-container {
@@ -125,17 +101,46 @@ body {
     .client-container {
         max-width: 4301px;
     }
-    
+
     .admin-container {
         max-width: 4251px;
     }
-    
+
     .popup-container {
         max-width: 4177px;
     }
 }
 
-.date-selector {
+/* ==================== Секция "Герой" ==================== */
+.hero {
+    color: #fff;
+    padding: 80px 0;
+    text-align: center;
+    border-bottom: 3px solid var(--p);
+}
+
+.hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: var(--g);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Скрываем ненужные элементы в hero */
+.hero p,
+.hero .lead,
+.hero .seance-today,
+[class*="seance-today"],
+[class*="session-today"],
+.seance-today-label {
+    display: none !important;
+}
+
+/* ==================== Выбор даты ==================== */
+.date_selector {
     background: transparent;
     padding: 20px;
     border-radius: 10px;
@@ -143,14 +148,14 @@ body {
     position: relative;
 }
 
-.date-scroll-wrapper {
+.date_scroll-wrapper {
     display: flex;
     align-items: center;
     gap: 5px;
     position: relative;
 }
 
-.date-scroll {
+.date_scroll {
     display: flex;
     overflow-x: auto;
     gap: 0;
@@ -160,11 +165,11 @@ body {
     flex: 1;
 }
 
-.date-scroll::-webkit-scrollbar {
+.date_scroll::-webkit-scrollbar {
     display: none;
 }
 
-.date-scroll-btn {
+.date_scroll_btn {
     min-width: 45px;
     height: 45px;
     background-color: white;
@@ -175,7 +180,7 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
     padding: 0;
     visibility: visible;
@@ -186,332 +191,67 @@ body {
     line-height: 1;
 }
 
-.date-scroll-btn::after {
+.date_scroll_btn::after {
     content: ">";
     display: block;
 }
 
-.date-scroll-btn:hover {
+.date_scroll_btn:hover {
     background-color: #f5f5f5;
-    transform: translateY(-2px);
     border-color: #ccc;
 }
 
-.date-scroll-btn i {
+.date_scroll_btn i {
     display: none;
 }
 
-.date-scroll-btn:active {
+.date_scroll_btn:active {
     transform: translateY(0);
 }
 
-.date-item {
+.date_item {
     min-width: 120px;
     padding: 2px 10px;
     text-align: center;
     cursor: pointer;
-    border-radius: 0;
+    border-radius: 1px;
     transition: all 0.3s;
-    background-color: white;
-    border: 1px solid #e0e0e0;
+    background-color: rgba(255, 255, 255, 0.9);
     color: black;
-    font-weight: 300;
     height: 45px;
-    display: flex;
-    flex-direction: column-reverse;
-    justify-content: center;
-    align-items: center;
     line-height: 1.3;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
-    margin: 0;
+    margin: 1px;
 }
 
-.date-item:not(:last-child) {
-    border-right: none;
-}
-
-.date-item:first-child {
-    border-left: 1px solid #e0e0e0;
-}
-
-.date-item:last-child {
-    border-right: 1px solid #e0e0e0;
-}
-
-.date-item .date-day {
-    font-size: 1rem;
-    text-transform: uppercase;
-    color: black;
-    font-weight: 400;
-    order: 2;
-}
-
-.date-item .date-day::after {
-    content: ",";
-    display: inline;
-}
-
-.date-item .date-number {
-    font-size: 1.4rem;
-    font-weight: 400;
-    color: black;
-    order: 1;
-}
-
-.date-item .date-month {
-    display: none;
-}
-
-.date-item:hover {
+.date_item:hover {
     background-color: #f5f5f5;
-    transform: translateY(-2px);
     border-color: #ccc;
     z-index: 1;
 }
 
-.date-item.active {
-    background: linear-gradient(135deg, #ff6b6b, #ffa500);
-    color: white;
-    border-color: transparent;
-    z-index: 2;
-}
-
-.date-item.active .date-day,
-.date-item.active .date-number {
-    color: white;
-}
-
-.seance-time-btn {
-    color: black !important;
-    font-weight: 600 !important;
-    font-size: 1.1rem;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-    background-color: white;
-    border: 2px solid #e0e0e0;
-    padding: 4px 12px;
-    margin: 0 5px 5px 0;
-    border-radius: 0;
-    transition: all 0.3s;
-    display: inline-block;
-    min-width: 70px;
-    text-align: center;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-}
-
-.seance-time-btn:hover {
-    background-color: #f5f5f5;
-    transform: translateY(-2px);
-    border-color: #ccc;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
-}
-
-.seance-time-btn.active {
-    background: linear-gradient(135deg, #ff6b6b, #ffa500);
-    color: white !important;
-    border-color: transparent;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-}
-
-.film_title {
+h3{
     padding-left: 30px;
+    margin: 10px 0;
+}
+.active.date_item {
+    min-width: 240px;
+    background: white;
+    transform: scale(1.1);
+    margin-right: 13px;
 }
 
-.movie-card,
-.screening-card {
-    background: var(--card);
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-}
-
-.movie-card:hover,
-.screening-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    border-color: var(--p);
-}
-
-.spinner-border {
-    margin: 2rem auto;
-}
-
-.film-card, .seance-card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.film-card:hover, .seance-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+/* ==================== Карточки фильмов и сеансов ==================== */
+.seance_card {
+    padding:20px;
+    margin: 30px;
 }
 
 .film-title {
     font-size: 1.1rem;
     font-weight: 600;
     color: #2c3e50;
-}
-
-.seance-time {
-    font-size: 1.2rem;
-    font-weight: 600 !important;
-    color: black !important;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-    background-color: white;
-    border: 2px solid #e0e0e0;
-    padding: 4px 12px;
-    display: inline-block;
-    margin: 0 5px 5px 0;
-    border-radius: 0;
-    transition: all 0.3s;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    cursor: pointer;
-}
-
-.seance-time:hover {
-    background-color: #f5f5f5;
-    transform: translateY(-2px);
-    border-color: #ccc;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
-}
-
-.seance-time.selected {
-    background: linear-gradient(135deg, #ff6b6b, #ffa500);
-    color: white !important;
-    border-color: transparent;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-}
-
-.hall-layout {
-    overflow-x: auto;
-    padding: 1rem 0;
-}
-
-/* Объединены все селекторы .seat в один */
-.seat {
-    width: 35px;
-    height: 35px;
-    margin: 3px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px 8px 0 0;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: #2a2a3e;
-    border: 2px solid #3a3a4e;
-    color: #fff;
-}
-
-.seat.available {
-    background-color: #ecf0f1;
-    border: 1px solid #bdc3c7;
-    color: #7f8c8d;
-    background: rgba(233, 236, 239, 0.1);
-    border-color: rgba(222, 226, 230, 0.3);
-}
-
-.seat.vip {
-    background-color: #f1c40f;
-    border: 1px solid #f39c12;
-    color: #000;
-    background: rgba(255, 195, 0, 0.2);
-    border-color: #ffc300;
-}
-
-.seat.selected {
-    background-color: #2ecc71;
-    border: 1px solid #27ae60;
-    color: white;
-    background: var(--g);
-    border-color: transparent;
-}
-
-.seat.disabled {
-    background-color: #cc2eb7;
-    border: 1px solid #ae278c;
-    color: rgb(192, 192, 192);
-}
-
-.seat.taken,
-.seat.booked {
-    background-color: #e74c3c;
-    border: 1px solid #c0392b;
-    color: white;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.seat:hover:not(.booked):not(.taken) {
-    transform: scale(1.1);
-    background: #3a3a4e;
-}
-
-.screen {
-    background: linear-gradient(to bottom, #34495e, #2c3e50);
-    color: white;
-    text-align: center;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    font-weight: bold;
-    letter-spacing: 5px;
-}
-
-/* Объединены все селекторы .screen в один */
-.screen {
-    width: 100%;
-    height: 40px;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 5px;
-    margin-bottom: 40px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.selected-seats-list {
-    max-height: 150px;
-    overflow-y: auto;
-}
-
-.selected-seat-item {
-    display: inline-block;
-    background: #e9ecef;
-    padding: 5px 10px;
-    margin: 3px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-}
-
-.ticket {
-    text-align: left;
-}
-
-.ticket-header {
-    border-bottom: 2px dashed #dee2e6;
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-}
-
-.ticket-code {
-    font-family: monospace;
-    font-size: 1.2rem;
-    color: #6c757d;
-}
-
-.qr-code {
-    max-width: 120px;
-    height: auto;
 }
 
 .card1 {
@@ -529,7 +269,7 @@ body {
 
 .film_description {
     padding-left: 30px;
-    padding-top: 30px;
+    margin: 10px 0;
 }
 
 .flex_gor {
@@ -540,7 +280,7 @@ body {
     height: 300px;
 }
 
-.screening-card .card-body {
+.screening_card .card_body {
     padding: 1.5rem;
 }
 
@@ -567,7 +307,7 @@ body {
     color: var(--a);
 }
 
-/* Стили для названий залов - черный цвет и размер 1.2rem */
+/* Стили для названий залов */
 .screening-hall,
 .hall-name,
 .hall-title,
@@ -577,66 +317,191 @@ body {
     font-size: 1.2rem !important;
 }
 
-.booking-container {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 10px;
+/* ==================== Кнопки времени сеансов ==================== */
+.seance-time_btn {
+    color: black !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border: 2px solid #e0e0e0;
+    padding: 4px 12px;
+    margin: 0 5px 5px 0;
+    border-radius: 0;
+    display: inline-block;
+    min-width: 70px;
+    text-align: center;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-.hall-layout {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background: var(--card);
-    border-radius: 10px;
+.seance-time_btn:hover {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
 }
 
-.seat-row {
+.seance-time_btn.active {
+    background: linear-gradient(135deg, #ff6b6b, #ffa500);
+    color: white !important;
+    border-color: transparent;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.seance-time_btn:disabled {
+    background: gray;
+}
+
+.seance-time {
+    font-size: 1.2rem;
+    font-weight: 600 !important;
+    color: black !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border: 2px solid #e0e0e0;
+    padding: 4px 12px;
+    display: inline-block;
+    margin: 0 5px 5px 0;
+    border-radius: 0;
+    transition: all 0.3s;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.seance-time:hover {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+.seance-time.selected {
+    background: linear-gradient(135deg, #ff6b6b, #ffa500);
+    color: white !important;
+    border-color: transparent;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ==================== Зал и места ==================== */
+.book_header, .book_footer{
+	background: #F1EBE6F2;
+	padding: 10px;
+}
+.book_footer{
+	display:flex;
+	justify-content: center;
+	gap:10px;
+	padding: 30px;
+}
+h4, h5{
+	margin: 10px;
+	color: #000;
+}
+h5{
+	font-size: 14px;
+	font-weight: 300;
+}
+.seat {
+    width: 19px;
+    height: 19px;
+    margin: 2px;
+    border-radius: 3.5px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+	border: 1px solid #525252
+}
+
+.seat.available {
+    background: white;
+}
+
+.seat.vip {
+	background: #F9953A;
+}
+
+.seat.selected {
+    background: #25C4CE;
+	box-shadow: 0 0 4px 1px #16A6AF;
+}
+
+.seat.disabled {
+	opacity: 0;
+}
+
+.seat.taken,
+.seat.booked {
+    background: 0;
+}
+
+.seat:hover:not(.booked):not(.taken) {
+    transform: scale(1.1);
+	box-shadow: 0 0 4px 1px white;
+
+}
+
+.screen {
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    margin-bottom: 40px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.seat_row {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
 }
 
-.row-number {
-    width: 40px;
-    text-align: center;
-    font-weight: 700;
-    margin-right: 10px;
-    color: var(--s);
-}
-
-.hall-legend {
+#hallLegend {
     display: flex;
     justify-content: center;
     gap: 20px;
     flex-wrap: wrap;
-    margin-top: 20px;
+	background:#000;
 }
 
-.legend-item {
+.legend_col {
+    margin: 5px;
+}
+
+.legend_item {
     display: flex;
     align-items: center;
     gap: 5px;
     color: rgba(255, 255, 255, 0.9);
+	font-size: 14px;
+	margin: 5px;
 }
 
-.modal-content {
-    background: var(--modal);
-    color: #fff;
-    border: 1px solid var(--p);
-    border-radius: 15px;
+/* ==================== Бронирование и билеты ==================== */
+.booking_container {
+    background: black;
 }
 
-.modal-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.selected-seats-list {
+    max-height: 150px;
+    overflow-y: auto;
 }
 
-.modal-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+.selected-seat-item {
+    display: inline-block;
+    background: #e9ecef;
+    padding: 5px 10px;
+    margin: 3px;
+    border-radius: 5px;
+    font-size: 0.9rem;
 }
 
 .ticket {
+    text-align: left;
     background: linear-gradient(135deg, #1a1a2e, #16213e);
     border: 2px dashed var(--p);
     border-radius: 10px;
@@ -646,10 +511,11 @@ body {
 }
 
 .ticket-header {
+    border-bottom: 2px dashed #dee2e6;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
     text-align: center;
     border-bottom: 2px solid var(--p);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
 }
 
 .ticket-header h4 {
@@ -659,6 +525,8 @@ body {
 
 .ticket-code {
     font-family: monospace;
+    font-size: 1.2rem;
+    color: #6c757d;
     background: rgba(255, 255, 255, 0.1);
     padding: 10px;
     border-radius: 5px;
@@ -666,8 +534,7 @@ body {
 }
 
 .qr-code {
-    width: 100%;
-    max-width: 150px;
+    max-width: 120px;
     height: auto;
     border: 2px solid var(--p);
     padding: 10px;
@@ -675,6 +542,91 @@ body {
     border-radius: 10px;
 }
 
+
+.book_header_footer {
+    color: black;
+    opacity: 0.95;
+	background: #F1EBE6F2;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal_dialog {
+    width: 60%;
+	min-width: 600px;
+	flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.perfored_top{
+	font-weight: 700;
+	font-size: 22px;
+	background: #F1EBE6F2;
+	color: #C76F00;
+	padding: 20px;
+	margin-bottom: 2px;
+	position: relative;
+}
+.booked_footer{
+	font-size: 14px;
+	color: #000;
+	position: relative;
+	background: #F1EBE6F2;
+	padding: 24px;
+}
+.booked_footer::after, .perfored_top::after, .perfored_top::before, #bookingInfo::before{
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-size: 13px 3px;
+  background-repeat: repeat-x;
+}
+.booked_footer::after, .perfored_top::after{
+  background-image: radial-gradient(circle at 3px 3px, transparent 3px, #F1EBE6F2 0);
+  bottom: -3px; 
+}
+#bookingInfo::before, .perfored_top::before{
+	background-image: radial-gradient(circle at 3px 0, transparent 3px, #F1EBE6F2 0);
+	top: -3px; 
+}
+#bookingInfo{
+	color: #000;
+	position: relative;
+	background: #F1EBE6F2;
+	padding: 10px;
+	margin-top: 3px;
+}
+#screen_png{
+	align-self: center;
+	margin: 8px 0;
+}
+#hallLayout{
+    max-width: 800px;
+	align-self: center;
+	width: min-content;
+    /*overflow-x: auto;
+    padding: 1rem 0;
+    margin: 0 auto;*/
+}
+@media (min-width: 992px) {
+    .modal_lg, .modal_xl {
+        max-width: 60%;
+    }
+}
+
+@media (max-width: 576px) {
+    .modal_dialog {
+        max-width: 500px;
+        margin: 1.75rem auto;
+    }
+}
+
+/* ==================== Админ-панель ==================== */
 .admin-container {
     display: flex;
     min-height: 100vh;
@@ -722,13 +674,13 @@ body {
 }
 
 .admin-section {
-    background: var(--card);
+    background: var(-_card);
     padding: 30px;
     border-radius: 10px;
     box-shadow: var(--shadow);
 }
 
-.stat-card {
+.stat_card {
     background: var(--g);
     color: #fff;
     padding: 20px;
@@ -736,7 +688,7 @@ body {
     text-align: center;
 }
 
-.stat-card h3 {
+.stat_card h3 {
     font-size: 2.5rem;
     margin-bottom: 10px;
 }
@@ -767,6 +719,7 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
+/* ==================== Формы и кнопки ==================== */
 .form-control {
     background: #ffffff;
     border: 1px solid #ced4da;
@@ -785,83 +738,56 @@ body {
 }
 
 .btn {
+	height: 40px;
     padding: 8px 16px;
-    border-radius: 5px;
+    border-radius: 3px;
     font-weight: 500;
-    transition: all 0.3s;
+	font-size: 14px;
+	background: #16A6AF;
+	box-shadow: 0px 0px 3px 0px #0000001F;
+	box-shadow: 0px 3px 3px 0px #0000003D;
+	border: none;
+	color:white;
+	min-width: 6em;
+}
+header{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+    width: 60%;
+}
+header>.btn {
+    /*text-decoration: none;*/
+	position: relative;
+}
+header>.btn>div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-.btn-primary {
-    background: var(--g);
-    border: none;
+.btn_secondary {
+	background: #085357;
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+.btn:hover {
+	box-shadow: 0px 0px 4px 1px white;
 }
 
-.btn-secondary {
-    background: rgba(255, 107, 107, 0.1);
-    border: 1px solid var(--p);
-    color: var(--p);
+/* ==================== Утилиты и анимации ==================== */
+.chevrons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-secondary:hover {
-    background: rgba(255, 107, 107, 0.2);
-    color: var(--p);
+.chevrons > img {
+    height: 30px;
 }
 
-@media (max-width: 768px) {
-    .hero h1 {
-        font-size: 2rem;
-    }
-    
-    .hero {
-        padding: 60px 0;
-    }
-    
-    .date-item {
-        min-width: 100px;
-        height: 40px;
-    }
-    
-    .date-item .date-day {
-        font-size: 0.9rem;
-    }
-    
-    .date-item .date-number {
-        font-size: 1.2rem;
-    }
-    
-    .date-scroll-btn {
-        min-width: 40px;
-        height: 40px;
-        font-size: 1.3rem;
-    }
-    
-    .navbar-nav .nav-link {
-        min-width: 80px;
-        padding: 6px 15px !important;
-    }
-    
-    .seat {
-        width: 30px;
-        height: 30px;
-    }
-    
-    .admin-container {
-        flex-direction: column;
-    }
-    
-    .sidebar {
-        width: 100%;
-        height: auto;
-    }
-    
-    .main-content {
-        padding: 20px;
-    }
+.round_svg {
+    height: 30px;
 }
 
 @keyframes fadeIn {
@@ -890,6 +816,11 @@ body {
     background: var(--g);
 }
 
+.spinner-border {
+    margin: 2rem auto;
+}
+
+/* ==================== Скроллбар ==================== */
 ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -906,4 +837,57 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--s);
+}
+
+/* ==================== Адаптивность (Media Queries) ==================== */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .hero {
+        padding: 60px 0;
+    }
+
+    .date_item {
+        min-width: 100px;
+        height: 40px;
+    }
+
+    .date_item .date-day {
+        font-size: 0.9rem;
+    }
+
+    .date_item .date-number {
+        font-size: 1.2rem;
+    }
+
+    .date_scroll_btn {
+        min-width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+
+    .navbar-nav .nav-link {
+        min-width: 80px;
+        padding: 6px 15px !important;
+    }
+
+    .seat {
+        width: 30px;
+        height: 30px;
+    }
+
+    .admin-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
 }

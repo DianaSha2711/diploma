@@ -11,20 +11,20 @@
 </head>
 <body id="myBody">
     <div class="login-container">
-        <div class="login-card">
+        <div class="login_card">
             <div class="login-logo">
                 <h2>Cinema<span>Admin</span></h2>
                 <p class="text-muted">Вход в панель управления</p>
             </div>
             
             <form id="loginForm">
-                <div class="mb-3">
+                <div>
                     <label for="username" class="form-label">Имя пользователя</label>
                     <input type="text" class="form-control" id="username" 
                            placeholder="Введите имя пользователя" required>
                 </div>
                 
-                <div class="mb-4">
+                <div>
                     <label for="password" class="form-label">Пароль</label>
                     <input type="password" class="form-control" id="password" 
                            placeholder="Введите пароль" required>
@@ -33,7 +33,7 @@
                 <div class="alert alert-danger d-none" id="errorAlert" role="alert"></div>
                 
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-login" id="loginBtn">
+                    <button type="submit" class="btn btn_login" id="loginBtn">
                         <span id="loginText">Войти</span>
                         <div class="spinner-border spinner-border-sm d-none" 
                              role="status" id="loginSpinner">

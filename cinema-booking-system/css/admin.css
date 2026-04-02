@@ -1,107 +1,365 @@
-#myBody {
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
     background: url('../img/admin.jpg') no-repeat center center fixed;
     background-size: cover;
-    min-height: 100vh;
     color: #fff;
-    margin: 0;
-}
-
-.user-info {
-    padding: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: auto;
-}
-
-.user-info .btn {
-    width: 100%;
-    text-align: left;
-}
-
-
-.movie-poster-small {
-    width: 50px;
-    height: 75px;
-    object-fit: cover;
-}
-
-.hall-card {
-    transition: transform 0.2s;
-}
-
-.hall-card:hover {
-    transform: translateY(-5px);
-}
-
-
-.table-responsive {
-    overflow-x: auto;
-}
-
-
-.toast-container {
-    z-index: 1060;
-}
-
-.login-container {
     min-height: 100vh;
+}
+
+.main_logo {
+    margin-left: 30%;
+}
+
+.flex_gor {
     display: flex;
     align-items: center;
+}
+
+.round {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 20px;
+    background: white;
+    border: solid 2px #6a4f9e;
+    margin: 15px;
+}
+
+.flex_width100 {
+    flex: 1 1 100%;
+
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section_contain {
+    padding: 30px;
+    background: #aab;
+}
+
+.panel {
+    background-color: #3a3a4f;
+
+    color: white;
+}
+
+.panel h2 {
+    font-size: 1.4em;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.panel>div>img {
+    height: 1.5rem;
+    min-width: 1.5rem;
+    max-width: 1.5rem;
+    margin: 15px;
+}
+
+.panel-content {
+    padding-left: 50px;
+    margin-bottom: 15px;
+}
+
+.hall-selector {
+    display: flex;
+    gap: 1px;
+    margin: 15px;
+    flex-wrap: wrap;
+}
+
+.hall-tab {
+    background-color: white;
+    color: #333;
+    border: solid 1px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px #000;
+    font-weight: bold;
+}
+
+.hall-tab.active {
+    box-shadow: 0 1px 3px #000;
+}
+
+/* Общие стили для полей ввода (белые) */
+.white-input {
+    background-color: white;
+    border: none;
+    /* Фиолетовая рамка */
+    width: 100px;
+    padding: 8px 12px;
+    margin: 5px;
+    color: #333;
+}
+
+/* Легенда для схемы зала */
+.legend {
+    display: flex;
+    gap: 20px;
+    margin: 10px 0;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    border: 1px solid #6a4f9e;
+}
+
+.legend-color.regular {
+    background-color: #808080;
+}
+
+.hall_scheme {
+    border: solid 1px #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+
+
+}
+
+/* Серый */
+.legend-color.vip {
+    background-color: #40e0d0;
+}
+
+/* Бирюзовый */
+.legend-color.disabled {
+    background-color: transparent;
+}
+
+/* Прозрачный */
+
+/* Экран */
+.cinema-screen {
+    background-color: #aaa;
+    color: #333;
+    text-align: center;
+    padding: 10px;
+    margin: 20px 0 30px 0;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: bold;
+}
+
+/* Схема зала (сетка кресел) */
+.seating-chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background-color: #2d2d3f;
+    padding: 20px;
+}
+
+.seat_row {
+    display: flex;
+    gap: 5px;
     justify-content: center;
 }
 
-.login-card {
-    width: 100%;
-    max-width: 400px;
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    background: white;
+.seat {
+    width: 30px;
+    height: 30px;
+    background-color: #808080;
+    /* Обычное серое */
+    border: 1px solid #6a4f9e;
+    cursor: pointer;
 }
 
-.login-logo {
-    text-align: center;
-    margin-bottom: 30px;
+.seat.vip {
+    background-color: #40e0d0;
+    /* Бирюзовый */
 }
 
-.login-logo h2 {
+.seat.disabled {
+    background-color: transparent;
+    border: 1px dashed #6a4f9e;
+}
+
+/* Список залов в первой секции */
+.hall-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+}
+
+.hall-item button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+/* Кнопка добавления */
+.add_btn {
+    background-color: white;
+    border: 1px solid #6a4f9e;
+    padding: 10px 15px;
+    margin: 15px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 1em;
+    border-radius: 0;
+}
+
+/* Действия панели (Сохранить/Отмена) */
+.panel-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    border-top: 1px solid #6a4f9e;
+    padding-top: 15px;
+}
+
+/* Базовые стили кнопок */
+.btn {
+    border: none;
+    padding: 10px 25px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 0;
+    /* Острые углы */
+    font-weight: bold;
+}
+
+.save_btn,
+.open-sales_btn {
+    background-color: #40e0d0;
+    /* Бирюзовый */
     color: #333;
-    font-weight: 700;
 }
 
-.login-logo span {
-    color: #667eea;
+.cancel_btn {
+    background-color: white;
+    /* Белый */
+    color: #333;
 }
 
-.form-control {
-    padding: 12px 15px;
-    border-radius: 10px;
-    border: 2px solid #e0e0e0;
-    transition: all 0.3s;
+/* Стили для списка фильмов */
+.films-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 15px 0;
 }
 
-.form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.film-tag {
+    background-color: #ff6b6b;
+    /* Базовый цвет, переопределится в JS */
+    border: 1px solid #6a4f9e;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: grab;
 }
 
-.btn-login {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
-    padding: 12px;
-    border-radius: 10px;
-    font-weight: 600;
+.film-tag img {
+    width: 30px;
+    height: 40px;
+    object-fit: cover;
+}
+
+.film-tag span {
+    color: #333;
+    font-weight: bold;
+}
+
+/* Таймлиния */
+.timeline {
+    background-color: #4a4a5f;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #6a4f9e;
+}
+
+.timeline h4 {
+    margin-bottom: 10px;
+}
+
+.time-scale {
+    display: flex;
+    justify-content: space-between;
+    background-color: #2d2d3f;
+    padding: 5px;
+    font-size: 0.8em;
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.time-slots {
+    position: relative;
+    background-color: #2d2d3f;
+    height: 70px;
+    border: 1px solid #6a4f9e;
+}
+
+.time-slot-film {
+    position: absolute;
+    height: 100%;
+    background-color: #ff6b6b;
+    /* Переопределяется в style */
+    border: 1px solid #6a4f9e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    color: #333;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 5px;
+}
+
+/* Форма добавления фильма */
+.film-form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    transition: all 0.3s;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-.btn-login:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+.film-form-overlay.hidden {
+    display: none;
 }
 
-.alert {
-    border-radius: 10px;
-    border: none;
+.film-form {
+    background-color: #3a3a4f;
+    padding: 30px;
+    border: 2px solid #6a4f9e;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.film-form h3 {
+    color: white;
 }

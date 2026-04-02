@@ -3,6 +3,24 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     try {
 
+		const donMain = document.getElementById('main_panel');
+	    const domBooking = document.getElementById('bookingPanel');
+		domBooking.style.display = "none";
+	    const domTickets = document.getElementById('bookedTikets');
+		domTickets.style.display = "none";
+	    const domQr = document.getElementById('bookedGrQode');
+		domQr.style.display = "none";
+
+		const btnCancelBooking = document.getElementsByClassName('cancelBooking');
+		for(const btn of btnCancelBooking) {
+			btn.onclick = () => {
+				domBooking.style.display = "none"; 
+				domTickets.style.display = "none"; 
+				domQr.style.display = "none"; 
+        		donMain.style.display = "";
+			}
+		}
+
         initDateSelector();
 
         await cinemaAPI.getAllData();
@@ -26,33 +44,65 @@ function initDateSelector() {
 
     dateScroll.innerHTML = '';
 
+    if (nCurrWeek > 0) {
+        const dateElement = document.createElement('div');
+        dateElement.className = 'date_item chevrons';
 
-    for (let i = 0; i < 14; i++) {
+        dateElement.innerHTML = `<img src="./img/chevron-left.svg">`;
+        dateElement.onclick = () => {
+            nCurrWeek--;
+            if (nCurrWeek < 0) nCurrWeek = 0;
+            initDateSelector();
+        }
+        dateScroll.appendChild(dateElement);
+    }
+    for (let i = 0; i < 7; i++) {
         const date = new Date();
-        date.setDate(date.getDate() + i);
+        date.setDate(date.getDate() + i + nCurrWeek * 7);
 
         const dateElement = document.createElement('div');
-        dateElement.className = 'date-item';
-        if (i === 0) dateElement.classList.add('active');
+        dateElement.className = 'date_item';
+        if (i === 0 && nCurrWeek == 0) {
+            dateElement.classList.add('active');
+            dateElement.innerHTML = `Сегодня <br>
+            <span class="date-day">${formatDay(date)}</span>
+            <span class="date-number">${date.getDate()}</span>
+        `;
+            dateElement.addEventListener('click', () => {
+                document.querySelectorAll('.date_item').forEach(el => el.classList.remove('active'));
+                dateElement.classList.add('active');
+                currentDate = date;
+                bToday = true;
+                loadSeances();
+            });
 
-        dateElement.innerHTML = `
+        } else {
+            dateElement.innerHTML = `
             <div class="date-day">${formatDay(date)}</div>
             <div class="date-number">${date.getDate()}</div>
-            <div class="date-month">${formatMonth(date)}</div>
         `;
 
-        dateElement.addEventListener('click', () => {
-            document.querySelectorAll('.date-item').forEach(el => el.classList.remove('active'));
-            dateElement.classList.add('active');
-            currentDate = date;
-            /*updateCurrentDateDisplay();*/
-            loadSeances();
-        });
+            dateElement.addEventListener('click', () => {
+                document.querySelectorAll('.date_item').forEach(el => el.classList.remove('active'));
+                dateElement.classList.add('active');
+                currentDate = date;
+                bToday = false;
+                loadSeances();
+            });
+        }
 
         dateScroll.appendChild(dateElement);
     }
+    const dateElement = document.createElement('div');
+    dateElement.className = 'date_item chevrons';
 
-    /*updateCurrentDateDisplay();*/
+    dateElement.innerHTML = `<img src="./img/chevron-right.svg">`;
+    dateElement.onclick = () => {
+        nCurrWeek++;
+        initDateSelector();
+    }
+    dateScroll.appendChild(dateElement);
+
 }
 
 function formatDay(date) {
@@ -105,7 +155,7 @@ function loadFilms() {
 
 function createFilmCard(film) {
     const col = document.createElement('div');
-    col.className = 'col-md-6 col-lg-3 mb-4';
+    col.className = 'col-md-6 col-lg-3';
 
     const poster = film.film_poster || 'img/title.svg';
     const rating = film.film_rating ? film.rating.toFixed(1) : '0.0';
@@ -116,14 +166,14 @@ function createFilmCard(film) {
         : 'Описание отсутствует';
 
     col.innerHTML = `
-        <div class="card film-card h-100">
+        <div class="film_card h100">
             <img src="${poster}" 
-                 class="card-img-top" 
+                 class="card_img-top" 
                  alt="${film.film_title}"
                  onerror="this.src='img/title.svg'">
-            <div class="card-body">
+            <div class="card_body">
                 <h5 class="film-title">${escapeHtml(film.film_title)}</h5>
-                <div class="film-meta mb-2">
+                <div>
                     <span class="film-duration">
                         <i class="fas fa-clock"></i> ${duration} мин
                     </span>
@@ -223,7 +273,7 @@ function createSeanceCard(seance) {
             aHalls.push({ id: time_hall.hall, aData: [{ time: time_hall.time, seanceId: time_hall.seanceId }] });
         }
     });
-
+    const today = new Date();
     aHalls.forEach(hall => {
         const currHall = allHalls.find(it => it.id === hall.id);
         let hallName = 'Неизвестный зал';
@@ -232,14 +282,30 @@ function createSeanceCard(seance) {
         }
         sTimes += `<div class="seance-hall">${hallName}<br>`
         hall.aData.forEach(data => {
-            sTimes += `<button class="seance-time" onclick="openBookingModal(${data.seanceId})">${data.time}</button>`
+
+            if (bToday) {
+                const todayDateStr = today.toISOString().split('T')[0];
+                const fullDateTimeStr = `${todayDateStr}T${data.time}:00`;
+
+                const dateFromTime = new Date(fullDateTimeStr);
+                if (today > dateFromTime) {
+                    sTimes += `<button class="seance-time_btn" disabled=true>${data.time}</button>`
+                } else {
+                    sTimes += `<button class="seance-time_btn" onclick="openBookingModal(${data.seanceId})">${data.time}</button>`
+                }
+
+            } else {
+ 				sTimes += `<button class="seance-time_btn" onclick="openBookingModal(${data.seanceId})">${data.time}</button>`
+            }
+
+           
         })
         sTimes += `</div>`
     });
 
     col.innerHTML = `
-        <div class="card1 seance-card">
-            <div class="card-body">
+        <div class="card1 seance_card">
+            <div class="card_body">
                 <div class="flex_gor">
                     <img src="${poster}" 
                         class="card_img_top" 
@@ -268,8 +334,15 @@ async function openBookingModal(seanceId) {
 
         generateHallLayout(currentSeance);
 
-        const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
-        modal.show();
+        const donMain = document.getElementById('main_panel');
+        donMain.style.display = "none"
+
+        const domBooking = document.getElementById('bookingPanel');
+        domBooking.style.display = ""
+
+		CalcScreenSize();
+
+
     } catch (error) {
         console.error('❌ Ошибка открытия бронирования:', error);
         showNotification('Ошибка загрузки данных: ' + error.message, 'danger');
@@ -280,95 +353,20 @@ function generateHallLayout(currentSeance) {
     const currentHall = cinemaAPI.getHall(currentSeance.seance_hallid);
     if (!currentHall) throw new Error('Зал не найден');
 
-    const domSeanceInfo = document.getElementById('seance_info');
-    if (domSeanceInfo) {
-        domSeanceInfo.innerHTML = currentHall.hall_name;
-    }
-
-    const container = document.getElementById('hallLayout');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    const domSelectedSeats = document.getElementById('selectedSeats');
-    domSelectedSeats.innerHTML = '<p class="text-muted">Места не выбраны</p>';
-
-    const domTotalElement = document.getElementById('totalPrice');
-    domTotalElement.innerText = '0';
-
-    const screen = document.createElement('div');
-    screen.className = 'screen';
-    screen.textContent = 'ЭКРАН';
-    container.appendChild(screen);
-
-    for (let row = 1; row <= currentHall.hall_rows; row++) {
-        const rowElement = document.createElement('div');
-        rowElement.className = 'seat-row';
-        rowElement.dataset.row = row;
-
-
-        const rowNumber = document.createElement('div');
-        rowNumber.className = 'row-number';
-        rowNumber.textContent = row;
-        rowElement.appendChild(rowNumber);
-
-
-        for (let seat = 1; seat <= currentHall.hall_places; seat++) {
-            const seatElement = createSeatElement(row, seat, currentHall, currentSeance);
-            rowElement.appendChild(seatElement);
-        }
-
-        container.appendChild(rowElement);
-    }
-
-    addHallLegend(container, currentHall);
+    if(!createSeats(currentHall)) throw new Error('Hall layout problem');;
+	if(!addHallLegend(currentHall)) throw new Error('Hall legend problem');;
 
     const confirmBtn = document.getElementById('confirmBooking');
     if (confirmBtn) {
-        confirmBtn.onclick = () => { confirmBooking(currentSeance) }
+        confirmBtn.onclick = () => { 
+			confirmBooking(currentSeance) 
+		}
     }
 
 }
 
-function createSeatElement(row, seat, currentHall, currentSeance) {
-    const seatElement = document.createElement('div');
-    seatElement.className = 'seat';
-    seatElement.row = row;
-    seatElement.seat = seat;
-    seatElement.textContent = seat;
+function GenerateOrder(){
 
-
-    const seatStatus = currentHall.hall_config[row - 1][seat - 1];
-
-    if (seatStatus === 'taken') {
-        seatElement.classList.add('taken');
-    } else if (seatStatus === 'disabled') {
-        seatElement.classList.add('disabled');
-    } else if (seatStatus === 'vip') {
-        seatElement.classList.add('vip');
-        seatElement.price = currentHall.hall_price_vip;
-        seatElement.onclick = () => {
-            if (seatElement.classList.contains('selected')) {
-                seatElement.classList.remove('selected');
-            } else {
-                seatElement.classList.add('selected');
-            }
-            updateSelectedSeatsDisplay();
-        }
-    } else {
-        seatElement.classList.add('available');
-        seatElement.price = currentHall.hall_price_standart;
-        seatElement.onclick = () => {
-            if (seatElement.classList.contains('selected')) {
-                seatElement.classList.replace('selected', 'available');
-            } else {
-                seatElement.classList.replace('available', 'selected');
-            }
-            updateSelectedSeatsDisplay();
-        }
-    }
-
-    return seatElement;
 }
 
 function displaySeances() {
@@ -421,35 +419,35 @@ function displaySeances() {
 
 
             const col = document.createElement('div');
-            col.className = 'col-md-6 col-lg-4 mb-4';
+            col.className = 'col-md-6 col-lg-4';
 
             col.innerHTML = `
-                <div class="card seance-card h-100">
-                    <div class="row g-0">
+                <div class="seance_card h100">
+                    <div>
                         <div class="col-4">
                             <img src="${film.poster || 'https://via.placeholder.com/150x200/2c3e50/ffffff?text=Кино'}" 
-                                 class="img-fluid rounded-start h-100" 
+                                 class="img-fluid rounded-start h100" 
                                  style="object-fit: cover;"
                                  alt="${film.title}"
                                  onerror="this.src='https://via.placeholder.com/150x200/2c3e50/ffffff?text=Кино'">
                         </div>
                         <div class="col-8">
-                            <div class="card-body">
+                            <div class="card_body">
                                 <h5 class="film-title">${escapeHtml(film.title)}</h5>
                                 <div class="seance-info">
-                                    <p class="mb-1">
+                                    <p>
                                         <i class="fas fa-video me-2"></i>
                                         <span class="seance-hall">${escapeHtml(hall.name)}</span>
                                     </p>
-                                    <p class="mb-1">
+                                    <p>
                                         <i class="fas fa-clock me-2"></i>
                                         <span class="seance-time">${seance.time}</span>
                                     </p>
-                                    <p class="mb-1">
+                                    <p>
                                         <i class="fas fa-calendar me-2"></i>
                                         ${seance.date}
                                     </p>
-                                    <p class="mb-2">
+                                    <p>
                                         <i class="fas fa-ruble-sign me-2"></i>
                                         <strong>${seance.price} ₽</strong>
                                         ${seance.vip_price ?
@@ -457,7 +455,7 @@ function displaySeances() {
                     : ''}
                                     </p>
                                 </div>
-                                <button class="btn btn-primary w-100 book-btn" 
+                                <button class="btn btn_primary w-100 book_btn" 
                                         data-seance-id="${seance.id}">
                                     <i class="fas fa-ticket-alt me-2"></i>Выбрать места
                                 </button>
@@ -471,7 +469,7 @@ function displaySeances() {
         });
 
 
-        document.querySelectorAll('.book-btn').forEach(btn => {
+        document.querySelectorAll('.book_btn').forEach(btn => {
             btn.addEventListener('click', function (e) {
                 const seanceId = this.dataset.seanceId;
                 console.log('🎫 Выбран сеанс ID:', seanceId);
@@ -496,30 +494,6 @@ function displaySeances() {
             `;
         }
     }
-}
-
-function addHallLegend(container, currentHall) {
-    const legend = document.createElement('div');
-    legend.className = 'hall-legend';
-    legend.innerHTML = `
-        <div class="legend-item">
-            <div class="seat available" style="width:20px;height:20px;"></div>
-            <span>Стандарт (${currentHall.hall_price_standart} ₽)</span>
-        </div>
-        <div class="legend-item">
-            <div class="seat vip" style="width:20px;height:20px;"></div>
-            <span>VIP (${currentHall.hall_price_vip} ₽)</span>
-        </div>
-        <div class="legend-item">
-            <div class="seat selected" style="width:20px;height:20px;"></div>
-            <span>Выбрано</span>
-        </div>
-        <div class="legend-item">
-            <div class="seat booked" style="width:20px;height:20px;"></div>
-            <span>Занято</span>
-        </div>
-    `;
-    container.appendChild(legend);
 }
 
 function updateSelectedSeatsDisplay() {
@@ -561,34 +535,65 @@ function updateSelectedSeatsDisplay() {
     }
 }
 
-async function confirmBooking(currentSeance) {
+function confirmBooking(currentSeance){
     const domSelectedSeats = document.getElementsByClassName('selected');
     const aSelectedSeats = Array.from(domSelectedSeats);
     aSelectedSeats.splice(aSelectedSeats.length - 1);
-    if (aSelectedSeats.length === 0) {
-        showNotification('Выберите хотя бы одно место', 'warning');
+    if (aSelectedSeats.length <= 0) {
+		alert("Места не выбраны");
         return;
     }
+
+    let total = 0;
+	const aTickets = [];
+    let seatsHtml = '';
+    aSelectedSeats.forEach(seat => {
+		aTickets.push({
+			row: seat.row, // Ряд
+			place: seat.seat, // Место
+			coast: seat.price, // Стоимость  билета
+		});
+		seatsHtml += `
+            <div class="selected-seat-item">
+                Ряд ${seat.row}, Место ${seat.seat} 
+                ${seat.classList.contains('vip') ? '<span class="badge bg-warning text-dark">VIP</span>' : ''}
+            </div>
+        `;
+        total += seat.price;
+    });
+
+	const domTickets = document.getElementById('bookingInfo');
+	domTickets.innerHTML = "На фильм <br>" + seatsHtml 
+							+ "<br>В зале: " 
+							+ "<br>Начало сеанса: " 
+							+ "<br>Стоимость: " + total + " ₽";
+
+	document.getElementById('bookingPanel').style.display = "none";
+	document.getElementById('bookedTikets').style.display = "";
+
+	const btnQrRequest = document.getElementById('getGrCode');
+    if (btnQrRequest) {
+        btnQrRequest.onclick = () => {
+			RequestBooking(currentSeance, aTickets)
+		};
+    }
+}
+
+async function RequestBooking(currentSeance, tickets) {
     try {
         console.log('🔄 Создание бронирования...');
 
-        const bookingData = {
-            seanceId: currentSeance.id,
+        const bookingData = {seanceId: currentSeance.id,
             ticketDate: formatDateForDisplay(new Date()),
-            tickets: aSelectedSeats.map(seat => ({
-                row: seat.row,
-                place: seat.seat,
-                coast: seat.price
-            })),
+            tickets
         };
 
         const result = await cinemaAPI.createBooking(bookingData);
 
         console.log('✅ Бронирование создано:', result);
 
-
-        bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
-
+		document.getElementById('bookedTikets').style.display = "none";
+		document.getElementById('bookedGrQode').style.display = "";
 
         showTicket(result);
 
@@ -609,9 +614,9 @@ ticket_row: 9
 ticket_time: "10:00"*/
 
 function showTicket(booking) {
-    const ticketContent = document.getElementById('ticketContent');
+    const ticketContent = document.getElementById('bookedGrQode');
     if (!ticketContent) return;
-     ticketContent.innerHTML = "";
+    ticketContent.innerHTML = "";
 
     for (const ticket of booking) {
         const filmTitle = ticket.ticket_filmname || 'Фильм';
@@ -650,26 +655,23 @@ function showTicket(booking) {
                         <p><strong>Ряд: </strong> ${ticket.ticket_row}, <strong>Место: </strong>${ticket.ticket_place}</p>
                         <p><strong>Стоимость:</strong> ${ticket.ticket_price} ₽</p>
                     </div>
-                    <div class="col-4 text-center">
+                    <div>
                         ${qrImage}
                     </div>
                 </div>
-                <div class="ticket-footer mt-4">
-                    <p class="text-muted small mb-2">
+                <div class="ticket-footer">
+                    <p class="text-muted smal">
                         <i class="fas fa-exclamation-triangle"></i>
                         Билет действителен строго на свой сеанс
                     </p>
-                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                    <button class="btn btn_sm btn_outline-primary" onclick="window.print()">
                         <i class="fas fa-print"></i> Распечатать
                     </button>
                 </div>
             </div>
         </div>
     `;
-
     }
-    // const code = booking.code || 'BK' + Math.random().toString(36).substr(2, 8).toUpperCase();
-
     const ticketModal = new bootstrap.Modal(document.getElementById('ticketModal'));
     ticketModal.show();
 }
@@ -697,60 +699,5 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-
-function showNotification(message, type = 'info') {
-
-    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
-
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-white bg-${type} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
-
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">
-                ${escapeHtml(message)}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                    data-bs-dismiss="toast"></button>
-        </div>
-    `;
-
-    toastContainer.appendChild(toast);
-
-    const bsToast = new bootstrap.Toast(toast, {
-        autohide: true,
-        delay: 3000
-    });
-
-    bsToast.show();
-
-    toast.addEventListener('hidden.bs.toast', () => {
-        toast.remove();
-    });
-}
-
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-    container.style.zIndex = '9999';
-    document.body.appendChild(container);
-    return container;
-}
-
-
-document.addEventListener('shown.bs.dropdown', function () {
-    console.log('Dropdown открыт');
-});
-
-
-/*document.addEventListener('error', function(e) {
-    if (e.target.tagName === 'IMG' && e.target.classList.contains('card-img-top')) {
-        e.target.src = 'img/title.svg';
-    }
-}, true);*/
 
 console.log('✅ app.js полностью загружен');
