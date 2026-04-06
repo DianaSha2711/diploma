@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в админ-панель</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+  
+</head>
+<body id="myBody">
+    <div class="login-container">
+        <div class="login_card">
+            <div class="login-logo">
+                <h2>Cinema<span>Admin</span></h2>
+                <p class="text-muted">Вход в панель управления</p>
+            </div>
+            
+            <form id="loginForm">
+                <div>
+                    <label for="username" class="form-label">Имя пользователя</label>
+                    <input type="text" class="form-control" id="username" 
+                           placeholder="Введите имя пользователя" required>
+                </div>
+                
+                <div>
+                    <label for="password" class="form-label">Пароль</label>
+                    <input type="password" class="form-control" id="password" 
+                           placeholder="Введите пароль" required>
+                </div>
+                
+                <div class="alert alert-danger d-none" id="errorAlert" role="alert"></div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn_login" id="loginBtn">
+                        <span id="loginText">Войти</span>
+                        <div class="spinner-border spinner-border-sm d-none" 
+                             role="status" id="loginSpinner">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <p class="text-muted">
+                        <small>
+                            Для демо используйте:<br>
+                            Логин: <strong>admin</strong><br>
+                            Пароль: <strong>admin123</strong>
+                        </small>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const errorAlert = document.getElementById('errorAlert');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginText = document.getElementById('loginText');
+    const loginSpinner = document.getElementById('loginSpinner');
+    
+    
+    if (auth.isAuthenticated()) {
+        window.location.href = 'admin.html';
+    }
+    
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+       
+        loginBtn.disabled = true;
+        loginText.classList.add('d-none');
+        loginSpinner.classList.remove('d-none');
+        errorAlert.classList.add('d-none');
+        
+        try {
+            
+            const result = await auth.login(username, password);
+            
+            if (result.success) {
+                console.log('✅ Вход выполнен успешно');
+                
+               
+                if (result.demo) {
+                    alert('Демо-режим: сервер не доступен, используются тестовые данные');
+                }
+                
+                
+                window.location.href = 'admin.html';
+            } else {
+                
+                errorAlert.textContent = result.error || 'Неверный логин или пароль';
+                errorAlert.classList.remove('d-none');
+                
+            
+                loginBtn.disabled = false;
+                loginText.classList.remove('d-none');
+                loginSpinner.classList.add('d-none');
+            }
+        } catch (error) {
+            errorAlert.textContent = 'Ошибка подключения к серверу';
+            errorAlert.classList.remove('d-none');
+            
+            loginBtn.disabled = false;
+            loginText.classList.remove('d-none');
+            loginSpinner.classList.add('d-none');
+        }
+    });
+});
+</script>
+</body>
+</html>
