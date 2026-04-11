@@ -44,12 +44,17 @@ body {
 
 .section_contain {
     padding: 30px;
-    background: #aab;
+    background: #EAE9EBF2;
+    color: #000;
+}
+
+span {
+    color: #848484;
+    padding: 0 5px;
 }
 
 .panel {
-    background-color: #3a3a4f;
-
+    background: #63536C;
     color: white;
 }
 
@@ -81,33 +86,32 @@ body {
 .hall-tab {
     background-color: white;
     color: #333;
-    border: solid 1px;
+    border: none;
     padding: 8px 16px;
     cursor: pointer;
     border-radius: 3px;
-    box-shadow: 0 1px 2px #000;
+    box-shadow: 0 2px 4px #00000088;
     font-weight: bold;
 }
 
 .hall-tab.active {
-    box-shadow: 0 1px 3px #000;
+    transform: scale(1.1);
+    box-shadow: 0 4px 6px #00000088;
 }
 
 /* Общие стили для полей ввода (белые) */
 .white-input {
     background-color: white;
     border: none;
-    /* Фиолетовая рамка */
     width: 100px;
     padding: 8px 12px;
-    margin: 5px;
+    margin: 0 5px;
     color: #333;
 }
 
 /* Легенда для схемы зала */
 .legend {
     display: flex;
-    gap: 20px;
     margin: 10px 0;
     align-items: center;
     flex-wrap: wrap;
@@ -117,12 +121,20 @@ body {
     display: inline-block;
     width: 20px;
     height: 20px;
-    margin-right: 5px;
-    border: 1px solid #6a4f9e;
+    margin-left: 15px;
+    margin-right: 4px;
+    border: 1px solid #393939;
+    background: #c4c4c4;
+    border-radius: 4px;
 }
 
-.legend-color.regular {
-    background-color: #808080;
+.seat {
+    width: 26px;
+    height: 26px;
+    border: 1px solid #393939;
+    background: #c4c4c4;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .hall_scheme {
@@ -135,67 +147,38 @@ body {
 
 }
 
-/* Серый */
-.legend-color.vip {
-    background-color: #40e0d0;
+.vip {
+    background-color: #b0d6d8;
+    border: #0a828a solid 1px;
 }
 
-/* Бирюзовый */
-.legend-color.disabled {
+.disabled {
     background-color: transparent;
+    border: #c4c4c4 solid 1px;
 }
 
-/* Прозрачный */
 
-/* Экран */
 .cinema-screen {
-    background-color: #aaa;
-    color: #333;
     text-align: center;
     padding: 10px;
-    margin: 20px 0 30px 0;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    font-weight: bold;
+    font-weight: 400;
 }
 
-/* Схема зала (сетка кресел) */
 .seating-chart {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
-    background-color: #2d2d3f;
-    padding: 20px;
+    gap: 10px;
+    padding-bottom: 19px;
 }
 
 .seat_row {
     display: flex;
-    gap: 5px;
+    gap: 10px;
     justify-content: center;
 }
 
-.seat {
-    width: 30px;
-    height: 30px;
-    background-color: #808080;
-    /* Обычное серое */
-    border: 1px solid #6a4f9e;
-    cursor: pointer;
-}
 
-.seat.vip {
-    background-color: #40e0d0;
-    /* Бирюзовый */
-}
-
-.seat.disabled {
-    background-color: transparent;
-    border: 1px dashed #6a4f9e;
-}
-
-/* Список залов в первой секции */
 .hall-item {
     display: flex;
     align-items: center;
@@ -203,14 +186,13 @@ body {
     margin-bottom: 5px;
 }
 
-.hall-item button {
-    background: none;
-    border: none;
+.delete-hall {
+    padding: 0.25rem 0.25rem 0.1rem 0.25rem !important;
+    margin-left: 4px;
+    background: #fff;
     cursor: pointer;
-    font-size: 1.2em;
 }
 
-/* Кнопка добавления */
 .add_btn {
     background-color: white;
     border: 1px solid #6a4f9e;
@@ -222,41 +204,36 @@ body {
     border-radius: 0;
 }
 
-/* Действия панели (Сохранить/Отмена) */
 .panel-actions {
     display: flex;
     gap: 10px;
-    justify-content: flex-end;
+    justify-content: center;
     margin-top: 20px;
-    border-top: 1px solid #6a4f9e;
     padding-top: 15px;
 }
 
-/* Базовые стили кнопок */
 .btn {
     border: none;
     padding: 10px 25px;
-    font-size: 1em;
     cursor: pointer;
-    border-radius: 0;
-    /* Острые углы */
-    font-weight: bold;
+    border-radius: 3px;
+    font-weight: 500;
+    box-shadow: 0px 0px 3px 0px #0000001F, 0px 3px 3px 0px #0000003D;
+    text-transform: uppercase;
 }
 
 .save_btn,
 .open-sales_btn {
-    background-color: #40e0d0;
-    /* Бирюзовый */
-    color: #333;
+    background-color: #16a6af;
+    color: #fff
+
 }
 
 .cancel_btn {
     background-color: white;
-    /* Белый */
     color: #333;
 }
 
-/* Стили для списка фильмов */
 .films-list {
     display: flex;
     gap: 10px;
@@ -264,7 +241,7 @@ body {
     margin: 15px 0;
 }
 
-.film-tag {
+.film_tag {
     background-color: #ff6b6b;
     /* Базовый цвет, переопределится в JS */
     border: 1px solid #6a4f9e;
@@ -273,25 +250,41 @@ body {
     align-items: center;
     gap: 10px;
     cursor: grab;
+	position: relative;
 }
 
-.film-tag img {
+.film_tag img {
     width: 30px;
     height: 40px;
     object-fit: cover;
+    position: relative;
 }
 
-.film-tag span {
+.trash{
+    position: absolute;
+    right:2px;
+    bottom: 2px;
+    width: 20px;
+    height: 20px;
+}
+
+.trash::after{
+    content: url('../img/trash.png');
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.film_tag span {
     color: #333;
     font-weight: bold;
 }
 
 /* Таймлиния */
 .timeline {
-    background-color: #4a4a5f;
     padding: 15px;
     margin-bottom: 15px;
-    border: 1px solid #6a4f9e;
 }
 
 .timeline h4 {
@@ -301,16 +294,11 @@ body {
 .time-scale {
     display: flex;
     justify-content: space-between;
-    background-color: #2d2d3f;
-    padding: 5px;
     font-size: 0.8em;
-    color: #ccc;
-    margin-bottom: 10px;
 }
 
 .time-slots {
     position: relative;
-    background-color: #2d2d3f;
     height: 70px;
     border: 1px solid #6a4f9e;
 }
@@ -319,7 +307,6 @@ body {
     position: absolute;
     height: 100%;
     background-color: #ff6b6b;
-    /* Переопределяется в style */
     border: 1px solid #6a4f9e;
     display: flex;
     align-items: center;
@@ -328,7 +315,7 @@ body {
     color: #333;
     cursor: pointer;
     overflow: hidden;
-    white-space: nowrap;
+    word-break: break-all;
     padding: 0 5px;
 }
 

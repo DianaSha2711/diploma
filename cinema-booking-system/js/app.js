@@ -603,16 +603,6 @@ async function RequestBooking(currentSeance, tickets) {
     }
 }
 
-/*
-id: 6688
-ticket_date: "23-02-2026"
-ticket_filmname: "Король лев"
-ticket_hallname: "ЗАЛ 1"
-ticket_place: 2
-ticket_price: 100
-ticket_row: 9
-ticket_time: "10:00"*/
-
 function showTicket(booking) {
     const ticketContent = document.getElementById('bookedGrQode');
     if (!ticketContent) return;

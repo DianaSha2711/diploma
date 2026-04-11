@@ -40,6 +40,32 @@ class CinemaAPI {
             throw error;
         }
     }
+     async request2(endpoint, data = null) {
+        try {
+            let url = this.baseURL + endpoint;
+            console.log(`📡 Запрос: ${method} ${url}`, JSON.stringify(data));
+
+            const response = await fetch(url, {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            console.log(`✅ Ответ:`, result);
+
+
+            if (result.success === true) {
+                return result.result;
+            } else {
+                throw new Error(result.error || 'Неизвестная ошибка');
+            }
+
+        } catch (error) {
+            console.error(`❌ Ошибка запроса ${endpoint}:`, error);
+            throw error;
+        }
+    }
 
 
 

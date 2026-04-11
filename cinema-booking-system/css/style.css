@@ -1,4 +1,4 @@
-/* ==================== Глобальные переменные и сброс ==================== */
+
 :root {
     --p: #ff6b6b;
     --s: #ffa500;
@@ -31,6 +31,11 @@ footer {
     position: absolute;
     bottom: 5px;
 }
+#main_panel{
+    width: 80%;
+    min-width: 800px;
+}
+
 .flex_vert{
     display: flex;
     flex-direction: column;
@@ -268,6 +273,7 @@ h3{
 }
 
 .film_description {
+    word-break: break-word;
     padding-left: 30px;
     margin: 10px 0;
 }

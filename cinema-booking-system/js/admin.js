@@ -5,13 +5,13 @@ let state = {
     selectedConfigHall: null,
     selectedPriceHall: null,
     selectedSalesHall: null,
-    seatingConfig: [] // Для хранения временной схемы зала
+    seatingConfig: []
 };
 
-// Инициализация приложения
 document.addEventListener('DOMContentLoaded', async () => {
-    // Загружаем все данные с сервера
+
     await loadInitialData();
+    state.selectedConfigHall = state.halls[0].id;
 
     // Рендерим все секции
     renderHallsManagement();
@@ -39,7 +39,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     }
+    const btnHallConfigSave = document.getElementById('hall_config_save');
+    btnHallConfigSave.onclick = async () => {
+        try {
+            console.log('🔄 Сохранение конфигурации зала...');
 
+            const hallData = cinemaAPI.getHall(state.selectedConfigHall);
+            const formData = new FormData();
+            formData.append('hallId', hallData.id);
+            formData.append('rowCount', hallData.hall_rows);
+            formData.append('placeCount', hallData.hall_places);
+            formData.append('config', JSON.stringify(state.seatingConfig));
+
+            const result = await cinemaAPI.request('hall/' + hallData.id, 'POST', formData);
+            hallData.hall_config = result.hall_config;
+            generateSeatingChart(hallData)
+            console.log('✅ Конфигурация зала сохранена:', result);
+
+        } catch (error) {
+            console.error('❌ Ошибка бронирования:', error);
+            showNotification('Ошибка бронирования' + (error && error.message) ? ': ' + error.message : '', 'danger');
+        }
+    }
+    const domRowsInput = document.getElementById('rows-count');
+    domRowsInput.oninput = () => {
+        const hallData = cinemaAPI.getHall(state.selectedConfigHall);
+        hallData.hall_rows = domRowsInput.value;
+        generateSeatingChart(hallData);
+    }
+    const domColsInput = document.getElementById('cols-count');
+    domColsInput.oninput = () => {
+        const hallData = cinemaAPI.getHall(state.selectedConfigHall);
+        hallData.hall_places = domColsInput.value;
+        generateSeatingChart(hallData);
+    }
+    loadHallConfig(state.halls[0].id);
 });
 
 // Функция загрузки начальных данных
@@ -67,8 +101,8 @@ function renderHallsManagement() {
         const hallDiv = document.createElement('div');
         hallDiv.className = 'hall-item';
         hallDiv.innerHTML = `
-            <span>${hall.hall_name}</span>
-            <button class="delete-hall" data-id="${hall.id}">🗑️</button>
+            <span>– ${hall.hall_name}</span>
+            <button class="delete-hall btn" id="${hall.id}"><img src='img/trash.png'></button>
         `;
         container.appendChild(hallDiv);
     });
@@ -76,7 +110,7 @@ function renderHallsManagement() {
     // Добавляем обработчики на кнопки удаления
     document.querySelectorAll('.delete-hall').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const hallId = e.target.dataset.id;
+            const hallId = btn.id;
             deleteHall(hallId);
         });
     });
@@ -88,12 +122,22 @@ function deleteHall(hallId) {
     renderHallTabs(); // Обновляем табы во всех секциях
 }
 
-function addHall() {
+async function addHall() {
+    const sHallName = prompt('Введите название зала');
+    if (!sHallName) {
+        alert("Имя зала не может быть пустым");
+    }
     const newId = Math.max(...state.halls.map(h => h.id), 0) + 1;
-    const newHall = { id: newId, name: `Зал ${newId}` };
-    state.halls.push(newHall);
-    renderHallsManagement();
-    renderHallTabs();
+    try {
+        const formData = new FormData();
+        formData.append('hallName', sHallName);
+        const result = await cinemaAPI.request('hall', 'POST', formData);
+        console.log('✅ Зал добавлен:', result);
+        state.halls = result.halls;
+        renderHallsManagement();
+        renderHallTabs();
+        renderTimelines();
+    } catch { }
 }
 
 // 2. Конфигурация залов (табы и схема)
@@ -116,23 +160,23 @@ function renderTabs(containerId, type, onClick) {
             (type === 'sales' && state.selectedSalesHall === hall.id)) {
             btn.classList.add('active');
         }
-        btn.textContent = hall.name;
+        btn.textContent = hall.hall_name;
         btn.addEventListener('click', () => onClick(hall));
         container.appendChild(btn);
     });
 }
 
-async function selectHall(type, hall) {
+function selectHall(type, hall) {
     const hallId = typeof hall === 'object' ? hall.id : hall;
 
     if (type === 'config') {
         state.selectedConfigHall = hallId;
         renderHallTabs();
-        await loadHallConfig(hallId);
+        loadHallConfig(hallId);
     } else if (type === 'prices') {
         state.selectedPriceHall = hallId;
         renderHallTabs();
-        await loadHallPrices(hallId);
+        loadHallPrices(hallId);
     } else if (type === 'sales') {
         state.selectedSalesHall = hallId;
         renderHallTabs();
@@ -141,9 +185,13 @@ async function selectHall(type, hall) {
 
 async function loadHallConfig(hallId) {
     try {
-        const hallData = await cinemaAPI.getHall(hallId);
+        const hallData = cinemaAPI.getHall(hallId);
         // Здесь должна быть логика отображения схемы зала
         generateSeatingChart(hallData);
+        const domRowsInput = document.getElementById('rows-count');
+        domRowsInput.value = hallData.hall_rows
+        const domColsInput = document.getElementById('cols-count');
+        domColsInput.value = hallData.hall_places
     } catch (error) {
         console.error('Ошибка загрузки конфигурации зала:', error);
         // Заглушка
@@ -153,31 +201,36 @@ async function loadHallConfig(hallId) {
 
 function generateSeatingChart(hallData) {
     const chart = document.getElementById('seating-chart');
-    const rows = hallData.rows || 5;
-    const cols = hallData.cols || 5;
+    const rows = hallData.hall_rows || 5;
+    const cols = hallData.hall_places || 5;
 
     chart.innerHTML = '';
+    state.seatingConfig = [];
     for (let r = 0; r < rows; r++) {
         const row = document.createElement('div');
         row.className = 'seat_row';
+        state.seatingConfig.push([]);
         for (let c = 0; c < cols; c++) {
             const seat = document.createElement('div');
-            seat.className = 'seat'; // По умолчанию обычное
-            // Здесь можно добавить логику определения типа из hallData.seats
-            seat.addEventListener('click', () => toggleSeatType(seat));
+            seat.className = 'seat' + ((hallData.hall_config[r][c] == "vip") ? " vip" : (hallData.hall_config[r][c] == "disabled") ? " disabled" : "");
+            seat.addEventListener('click', () => toggleSeatType(seat, r, c));
             row.appendChild(seat);
+            state.seatingConfig[r][c] = hallData.hall_config[r][c];
         }
         chart.appendChild(row);
     }
 }
 
-function toggleSeatType(seatElement) {
+function toggleSeatType(seatElement, r, c) {
     if (seatElement.classList.contains('vip')) {
         seatElement.classList.remove('vip');
         seatElement.classList.add('disabled');
+        state.seatingConfig[r][c] = "disabled";
     } else if (seatElement.classList.contains('disabled')) {
         seatElement.classList.remove('disabled');
+        state.seatingConfig[r][c] = "standart";
     } else {
+        state.seatingConfig[r][c] = "vip";
         seatElement.classList.add('vip');
     }
 }
@@ -192,7 +245,7 @@ async function loadHallPrices(hallId) {
     }
 }
 
-// 3. Фильмы и сетка сеансов
+
 function renderFilmsList() {
     const container = document.getElementById('films-list');
     container.innerHTML = '';
@@ -200,25 +253,27 @@ function renderFilmsList() {
     // Цвета для фильмов
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
 
+
     state.films.forEach((film, index) => {
         const filmEl = document.createElement('div');
-        filmEl.className = 'film-tag';
+        filmEl.className = 'film_tag';
         filmEl.style.backgroundColor = colors[index % colors.length];
         filmEl.draggable = true;
         filmEl.dataset.filmId = film.id;
         filmEl.dataset.duration = film.duration;
 
         filmEl.innerHTML = `
-            <img src="${film.poster || 'https://via.placeholder.com/30x40'}" alt="${film.name}">
-            <span>${film.name} (${film.duration} мин)</span>
+            <img src="${film.film_poster || 'https://via.placeholder.com/30x40'}" alt="${film.film_name}">
+            <span>${film.film_name} (${film.film_duration} мин)</span>
+            <button class="trash btn delete-hall"></button>
         `;
 
         // Drag & Drop
         filmEl.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', JSON.stringify({
                 id: film.id,
-                name: film.name,
-                duration: film.duration,
+                name: film.film_name,
+                duration: film.film_duration,
                 color: colors[index % colors.length]
             }));
         });
@@ -235,11 +290,13 @@ function renderTimelines() {
         const timelineDiv = document.createElement('div');
         timelineDiv.className = 'timeline';
         timelineDiv.innerHTML = `
-            <h4>${hall.name}</h4>
+            <h4>${hall.hall_name}</h4>
+            <div class="time-slots" data-hall-id="${hall.id}"></div>
             <div class="time-scale">
+                <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
+            </div> <div class="time-scale">
                 <span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
             </div>
-            <div class="time-slots" data-hall-id="${hall.id}"></div>
         `;
 
         // Обработчик drop для таймлинии
@@ -248,27 +305,30 @@ function renderTimelines() {
         slots.addEventListener('drop', (e) => {
             e.preventDefault();
             const filmData = JSON.parse(e.dataTransfer.getData('text/plain'));
-            addFilmToTimeline(slots, filmData);
+            addFilmToTimeline(slots, filmData, e);
         });
 
         container.appendChild(timelineDiv);
     });
 }
 
-function addFilmToTimeline(container, filmData) {
+function addFilmToTimeline(container, filmData, e) {
+    const rect = container.getBoundingClientRect();
+    const nOffset = (e.x - rect.x);
     const filmBlock = document.createElement('div');
+    const nFilmLenght = filmData.duration / (60 * 24) * rect.width;
     filmBlock.className = 'time-slot-film';
     filmBlock.style.backgroundColor = filmData.color;
-    filmBlock.style.width = `${filmData.duration * 2}px`; // Пример: 1 мин = 2px
+    filmBlock.style.width = `${filmData.duration * 2}px`;
     filmBlock.textContent = filmData.name;
-    filmBlock.style.left = '100px'; // Примерная позиция, нужно рассчитывать
+    filmBlock.style.left = nOffset + 'px';
+    filmBlock.style.maxWidth = nFilmLenght + 'px';
+    filmBlock.title = filmData.name;
 
-    // Клик для редактирования времени начала
     filmBlock.addEventListener('click', () => {
         const newTime = prompt('Введите время начала (например, 14:30):', '12:00');
         if (newTime) {
-            // Здесь логика пересчета позиции
-            filmBlock.style.left = '200px'; // Заглушка
+            filmBlock.style.left = '200px';
         }
     });
 
@@ -345,7 +405,7 @@ function setupEventListeners() {
     document.querySelectorAll('.save_btn').forEach(btn => {
         btn.addEventListener('click', () => {
             console.log('Сохранение изменений');
-            // Здесь вызов API для сохранения
+
         });
     });
 
@@ -353,7 +413,7 @@ function setupEventListeners() {
     document.getElementById('open-sales_btn').addEventListener('click', openSales);
 }
 
-// Для демонстрации создадим заглушку API, если её нет
+
 if (typeof cinemaAPI === 'undefined') {
     window.cinemaAPI = {
         getAllData: async () => {
